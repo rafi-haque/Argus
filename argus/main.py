@@ -23,6 +23,18 @@ def parse_arguments():
     )
     
     parser.add_argument(
+        '--policy',
+        choices=['quick', 'standard', 'full', 'api', 'owasp-top10', 'custom'],
+        default='standard',
+        help='Scan policy to use (default: standard)'
+    )
+    
+    parser.add_argument(
+        '--modules',
+        help='Comma-separated list of modules to enable (for custom policy)'
+    )
+    
+    parser.add_argument(
         '--auth-header',
         help='Authentication header (e.g., "Authorization: Bearer token")'
     )
@@ -102,21 +114,35 @@ def main():
     # Parse arguments
     args = parse_arguments()
     
+    # Load scan policy
+    from argus.config.scan_policies import get_policy
+    
+    if args.policy == 'custom' and args.modules:
+        policy = get_policy('custom', modules=args.modules.split(','))
+    else:
+        policy = get_policy(args.policy)
+    
+    policy_config = policy.to_dict()
+    
     # Build configuration
     config = {
         'seed_url': args.url,
         'auth': None,
-        'scope': {
-            'include_patterns': args.include_pattern or [],
-            'exclude_patterns': args.exclude_pattern or []
-        },
-        'performance': {
-            'max_concurrent': args.max_concurrent,
-            'request_delay': args.request_delay,
-            'timeout': 10
-        },
-        'verbose': args.verbose
+        'scope': policy_config['scope'],
+        'performance': policy_config['performance'],
+        'verbose': args.verbose,
+        'use_browser_validation': True,  # Enable XSS browser validation
     }
+    
+    # Override with command-line arguments if provided
+    if args.max_concurrent:
+        config['performance']['max_concurrent'] = args.max_concurrent
+    if args.request_delay:
+        config['performance']['request_delay'] = args.request_delay
+    if args.include_pattern:
+        config['scope']['include_patterns'] = args.include_pattern
+    if args.exclude_pattern:
+        config['scope']['exclude_patterns'] = args.exclude_pattern
     
     # Parse auth header if provided
     if args.auth_header:
@@ -129,8 +155,10 @@ def main():
             }
     
     print(f"\n🎯 Target: {args.url}")
-    print(f"⚙️  Max Concurrent: {args.max_concurrent}")
-    print(f"⏱️  Request Delay: {args.request_delay}s")
+    print(f"📋 Policy: {policy.name} - {policy.description}")
+    print(f"🔧 Modules: {', '.join(policy_config['modules'])}")
+    print(f"⚙️  Max Concurrent: {config['performance']['max_concurrent']}")
+    print(f"⏱️  Request Delay: {config['performance']['request_delay']}s")
     print("\n🔍 Starting scan...\n")
     
     try:
@@ -143,20 +171,36 @@ def main():
         from argus.modules.attack_modules.command_injection import CommandInjectionModule
         from argus.modules.attack_modules.cors import CORSModule
         from argus.modules.attack_modules.open_redirect import OpenRedirectModule
+        from argus.modules.attack_modules.ssrf import SSRFModule
+        from argus.modules.attack_modules.lfi_rfi import LFIRFIModule
+        from argus.modules.attack_modules.insecure_deserialization import InsecureDeserializationModule
+        from argus.modules.attack_modules.api_vulnerabilities import APIVulnerabilitiesModule
         from argus.modules.orchestrator import ScannerOrchestrator
         from argus.modules.reporting import CLIReporter
         
-        # Initialize attack modules
-        modules = [
-            InsecureHeadersModule(config),
-            SQLiModule(config),
-            XSSModule(config),
-            CSRFModule(config),
-            PathTraversalModule(config),
-            CommandInjectionModule(config),
-            CORSModule(config),
-            OpenRedirectModule(config),
-        ]
+        # All available modules
+        all_modules = {
+            'insecure_headers': InsecureHeadersModule(config),
+            'sqli': SQLiModule(config),
+            'xss': XSSModule(config),
+            'csrf': CSRFModule(config),
+            'path_traversal': PathTraversalModule(config),
+            'command_injection': CommandInjectionModule(config),
+            'cors': CORSModule(config),
+            'open_redirect': OpenRedirectModule(config),
+            'ssrf': SSRFModule(config),
+            'lfi_rfi': LFIRFIModule(config),
+            'insecure_deserialization': InsecureDeserializationModule(config),
+            'api_vulnerabilities': APIVulnerabilitiesModule(config),
+        }
+        
+        # Filter modules based on policy
+        enabled_modules = policy_config['modules']
+        modules = [all_modules[name] for name in enabled_modules if name in all_modules]
+        
+        if not modules:
+            print("❌ No valid modules enabled in policy")
+            return 1
         
         # Initialize orchestrator and reporter
         orchestrator = ScannerOrchestrator(config, modules)

@@ -20,7 +20,7 @@ class XSSModule(BaseAttackModule):
     
     def description(self) -> str:
         """Return module description."""
-        return "Detects Cross-Site Scripting (XSS) vulnerabilities (Reflected and DOM-based)"
+        return "Detects Cross-Site Scripting (XSS) vulnerabilities with browser validation"
     
     def check_applicable(self, parameter: dict, context: dict) -> bool:
         """Check if XSS module should run on this parameter.
@@ -51,7 +51,13 @@ class XSSModule(BaseAttackModule):
         """
         findings = []
         
-        # Try reflected XSS
+        # Try reflected XSS with browser validation
+        reflected_finding = self._test_reflected_xss_with_browser(url, parameter, session)
+        if reflected_finding:
+            findings.append(reflected_finding)
+            return findings  # Found confirmed XSS
+        
+        # Fallback to simple reflection detection
         reflected_finding = self._test_reflected_xss(url, parameter, session)
         if reflected_finding:
             findings.append(reflected_finding)
@@ -63,6 +69,88 @@ class XSSModule(BaseAttackModule):
                 findings.append(dom_finding)
         
         return findings
+    
+    def _test_reflected_xss_with_browser(self, url: str, parameter: dict, session: requests.Session) -> Dict:
+        """Test for reflected XSS with headless browser validation.
+        
+        This method confirms that the XSS payload actually executes JavaScript
+        in a real browser, dramatically reducing false positives.
+        
+        Args:
+            url: URL to test
+            parameter: Parameter to test
+            session: Requests session
+        
+        Returns:
+            dict: Finding if vulnerable and confirmed, None otherwise
+        """
+        # Only attempt browser validation if Playwright is available
+        if not self.config.get('use_browser_validation', True):
+            return None
+        
+        try:
+            from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
+            import hashlib
+            
+            param_name = parameter['name']
+            param_location = parameter['location']
+            
+            # Generate unique identifier
+            unique_id = hashlib.md5(f"{url}{param_name}".encode()).hexdigest()[:8]
+            
+            # Test payloads that would trigger observable behavior
+            test_payloads = [
+                f"<script>window.argus_{unique_id}=1</script>",
+                f"'><script>window.argus_{unique_id}=1</script>",
+                f"\"><script>window.argus_{unique_id}=1</script>",
+                f"<img src=x onerror=window.argus_{unique_id}=1>",
+            ]
+            
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                context = browser.new_context()
+                page = context.new_page()
+                
+                for payload in test_payloads[:3]:  # Test first 3
+                    try:
+                        # Inject payload
+                        test_url = self._inject_payload(url, param_name, payload, param_location)
+                        
+                        # Navigate and wait for page load
+                        page.goto(test_url, wait_until='networkidle', timeout=10000)
+                        
+                        # Check if our JavaScript executed
+                        result = page.evaluate(f"typeof window.argus_{unique_id}")
+                        
+                        if result == 'number':  # Our script executed!
+                            browser.close()
+                            return {
+                                'name': 'Cross-Site Scripting (XSS) - Confirmed',
+                                'severity': 'Critical',
+                                'url': url,
+                                'parameter': param_name,
+                                'payload': payload,
+                                'evidence': 'XSS payload confirmed to execute JavaScript in browser. Custom window property was set successfully.'
+                            }
+                    
+                    except PlaywrightTimeout:
+                        continue
+                    except Exception as e:
+                        if self.config.get('verbose'):
+                            print(f"Browser validation error: {e}")
+                        continue
+                
+                browser.close()
+        
+        except ImportError:
+            # Playwright not available, skip browser validation
+            if self.config.get('verbose'):
+                print("Playwright not available for browser validation")
+        except Exception as e:
+            if self.config.get('verbose'):
+                print(f"Browser validation error: {e}")
+        
+        return None
     
     def _test_reflected_xss(self, url: str, parameter: dict, session: requests.Session) -> Dict:
         """Test for reflected XSS.

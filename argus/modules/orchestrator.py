@@ -72,8 +72,11 @@ class ScannerOrchestrator:
                         'all_params': entry['parameters']
                     }
                     
+                    # Apply contextual rules to prioritize modules
+                    prioritized_modules = self._get_prioritized_modules(parameter, context)
+                    
                     # Check which modules apply to this parameter
-                    for module in self.modules:
+                    for module in prioritized_modules:
                         if module.check_applicable(parameter, context):
                             modules_run += 1
                             
@@ -98,7 +101,10 @@ class ScannerOrchestrator:
                     'all_params': []
                 }
                 
-                for module in self.modules:
+                # Apply contextual rules for URL-level checks
+                prioritized_modules = self._get_prioritized_modules(parameter, context)
+                
+                for module in prioritized_modules:
                     if module.check_applicable(parameter, context):
                         modules_run += 1
                         
@@ -130,8 +136,39 @@ class ScannerOrchestrator:
             'stats': stats
         }
     
+    def _get_prioritized_modules(self, parameter: Dict, context: Dict) -> List:
+        """Get modules prioritized based on context.
+        
+        Args:
+            parameter: Parameter to test
+            context: Context information
+            
+        Returns:
+            List of modules ordered by relevance
+        """
+        module_priorities = self._apply_contextual_rules(parameter, context)
+        
+        # Build ordered list
+        prioritized = []
+        module_map = {m.name(): m for m in self.modules}
+        
+        # Add prioritized modules first
+        for module_name in module_priorities:
+            if module_name in module_map:
+                prioritized.append(module_map[module_name])
+                del module_map[module_name]
+        
+        # Add remaining modules
+        prioritized.extend(module_map.values())
+        
+        return prioritized
+    
     def _apply_contextual_rules(self, parameter: Dict, context: Dict) -> List[str]:
-        """Apply context-aware module selection.
+        """Apply context-aware module selection and prioritization.
+        
+        This method analyzes the context (URL, parameter names, HTTP method, etc.)
+        to intelligently prioritize which vulnerability checks to run first.
+        This improves efficiency and accuracy by focusing on the most likely vulnerabilities.
         
         Args:
             parameter: Parameter to test
@@ -142,19 +179,56 @@ class ScannerOrchestrator:
         """
         priorities = []
         
-        param_name = parameter.get('name', '').lower()
+        param_name = parameter.get('name', '').lower() if parameter.get('name') else ''
         url = context.get('url', '').lower()
+        method = context.get('method', 'GET').upper()
         
-        # Login/auth forms - prioritize SQLi
-        if any(keyword in param_name for keyword in ['user', 'pass', 'login', 'auth']):
-            priorities = ['sqli', 'xss']
-        # API endpoints - prioritize SQLi
-        elif '/api/' in url or param_name in ['id', 'userid']:
-            priorities = ['sqli', 'xss']
-        # Search forms - prioritize XSS
-        elif 'search' in param_name or 'query' in param_name or 'q' == param_name:
+        # URL/redirect parameters - prioritize Open Redirect and SSRF (check first!)
+        if any(keyword in param_name for keyword in ['url', 'redirect', 'return', 'next', 'continue', 'dest', 'destination', 'redir', 'link']):
+            priorities = ['open_redirect', 'ssrf', 'xss']
+        
+        # File upload/path parameters - prioritize Path Traversal and Command Injection
+        elif any(keyword in param_name for keyword in ['file', 'path', 'dir', 'folder', 'upload', 'document']):
+            priorities = ['path_traversal', 'lfi_rfi', 'command_injection', 'xss']
+        
+        # Command/system parameters - prioritize Command Injection
+        elif any(keyword in param_name for keyword in ['cmd', 'command', 'exec', 'system', 'shell', 'ping']):
+            priorities = ['command_injection', 'sqli', 'xss']
+        
+        # Login/auth forms - prioritize SQLi and CSRF
+        elif any(keyword in param_name for keyword in ['user', 'pass', 'login', 'auth', 'email', 'username', 'password']):
+            priorities = ['sqli', 'xss', 'csrf']
+        
+        # API endpoints - prioritize SQLi and API-specific vulns
+        elif '/api/' in url or 'api.' in url:
+            if param_name in ['id', 'userid', 'user_id', 'objectid', 'object_id']:
+                priorities = ['sqli', 'api_vulnerabilities', 'xss']
+            else:
+                priorities = ['api_vulnerabilities', 'sqli', 'xss']
+        
+        # Search forms - prioritize XSS and SQLi
+        elif any(keyword in param_name for keyword in ['search', 'query', 'q', 'keyword', 'term']):
             priorities = ['xss', 'sqli']
+        
+        # Data serialization parameters - prioritize Insecure Deserialization
+        elif any(keyword in param_name for keyword in ['data', 'object', 'payload', 'serialized', 'json', 'xml']):
+            priorities = ['insecure_deserialization', 'xss', 'sqli']
+        
+        # Form submissions (POST/PUT/PATCH) - check CSRF
+        elif method in ['POST', 'PUT', 'PATCH', 'DELETE'] and not param_name:
+            priorities = ['csrf', 'insecure_headers', 'cors']
+        
+        # ID parameters - prioritize SQLi
+        elif param_name in ['id', 'userid', 'user_id', 'item_id', 'product_id', 'order_id']:
+            priorities = ['sqli', 'xss']
+        
+        # Default prioritization
         else:
-            priorities = ['xss', 'sqli']
+            priorities = ['xss', 'sqli', 'csrf']
+        
+        # Always check for insecure headers on URL-level checks
+        if not param_name:
+            if 'insecure_headers' not in priorities:
+                priorities.append('insecure_headers')
         
         return priorities

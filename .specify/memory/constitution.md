@@ -1,50 +1,40 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!-- Sync Impact Report
+Version change: none → 1.0.0
+List of modified principles: All principles added (Context Over Volume, Modularity and Extensibility, Developer-First Interface, Safety and Ethics First, Performance Matters)
+Added sections: Primary Goal, Implementation Guidelines
+Removed sections: none
+Templates requiring updates: none (new constitution)
+Follow-up TODOs: RATIFICATION_DATE (original adoption date unknown), GUIDANCE_FILE (runtime guidance file not specified), SECTION_3_CONTENT (implementation guidelines not provided)
+-->
+
+# Argus Security Scanner Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### Context Over Volume
+The scanner's primary strength will be its ability to choose the right payload for the right parameter. We prefer one accurate SQLi finding over 10,000 blind, noisy requests.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### Modularity and Extensibility
+The architecture must be pluggable. Adding a new vulnerability detection module (e.g., for SSRF) should be straightforward and not require rewriting the core engine.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### Developer-First Interface
+The tool should be easy to run and its output must be clear, actionable, and available in both human-readable (CLI) and machine-readable (JSON) formats.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### Safety and Ethics First
+The tool is a weapon. It must be built and documented with a strong ethical framework. It will never default to a dangerous action and will include clear warnings against misuse.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### Performance Matters
+While context is key, the tool should be reasonably performant and utilize concurrency to scan multiple endpoints or parameters simultaneously where appropriate.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Primary Goal
+To create an automated security tool that discovers common web vulnerabilities by understanding the application's context, leading to fewer, more accurate findings than a purely "dumb" fuzzer.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
-
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
-
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+## Implementation Guidelines
+TODO: Define specific development workflow, review process, and quality gates.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+Constitution supersedes all other practices; Amendments require documentation, approval, migration plan
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+All PRs/reviews must verify compliance; Complexity must be justified; Use TODO(GUIDANCE_FILE): runtime development guidance file not specified for runtime development guidance
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: TODO(RATIFICATION_DATE): Original adoption date unknown | **Last Amended**: 2025-10-04

@@ -1,7 +1,9 @@
 """Server-Side Request Forgery (SSRF) detection module."""
 from argus.modules.attack_modules.base import BaseAttackModule
+from argus.modules.oast import OASTClient, OASTPayloadGenerator
 import time
 import socket
+from typing import Optional
 
 
 class SSRFModule(BaseAttackModule):
@@ -99,6 +101,21 @@ class SSRFModule(BaseAttackModule):
         findings = []
         
         try:
+            # Initialize OAST client for blind SSRF detection
+            oast_enabled = self.config.get('enable_oast', True)
+            oast_client: Optional[OASTClient] = None
+            oast_payloads: Optional[OASTPayloadGenerator] = None
+            
+            if oast_enabled:
+                try:
+                    oast_client = OASTClient(self.config)
+                    oast_client.register()
+                    oast_payloads = OASTPayloadGenerator(oast_client)
+                except Exception as e:
+                    if self.config.get('verbose'):
+                        print(f"OAST not available: {e}")
+                    oast_client = None
+            
             # Get baseline response
             baseline_params = {parameter['name']: parameter['value']}
             baseline_response = session.get(
@@ -108,6 +125,16 @@ class SSRFModule(BaseAttackModule):
                 allow_redirects=False
             )
             baseline_time = 0
+            
+            # Test OAST payloads first (most reliable for blind SSRF)
+            if oast_client and oast_payloads:
+                oast_results = self._test_oast_ssrf(
+                    url, parameter, session, oast_client, oast_payloads
+                )
+                findings.extend(oast_results)
+                
+                if findings:  # Blind SSRF confirmed via OAST
+                    return findings
             
             # Test internal IPs and bypass techniques
             for payload in self.BYPASS_PAYLOADS[:10]:  # Limit to first 10 for efficiency
@@ -162,6 +189,10 @@ class SSRFModule(BaseAttackModule):
             # Test cloud metadata endpoints
             if not findings:  # Only if SSRF not already detected
                 findings.extend(self._test_cloud_metadata(url, parameter, session))
+            
+            # Cleanup OAST
+            if oast_client:
+                oast_client.cleanup()
         
         except Exception as e:
             if self.config.get('verbose'):
@@ -230,6 +261,61 @@ class SSRFModule(BaseAttackModule):
                 indicators.append(f'Error message revealing internal behavior: "{pattern}"')
         
         return ' | '.join(indicators) if indicators else ''
+    
+    def _test_oast_ssrf(self, url: str, parameter: dict, session, 
+                        oast_client: OASTClient, oast_payloads: OASTPayloadGenerator) -> list:
+        """Test for blind SSRF using OAST callbacks.
+        
+        Args:
+            url: Target URL
+            parameter: Parameter to test
+            session: Requests session
+            oast_client: OAST client instance
+            oast_payloads: OAST payload generator
+        
+        Returns:
+            list: Findings
+        """
+        findings = []
+        callback_ids = []
+        
+        try:
+            # Generate and send OAST payloads
+            payloads = oast_payloads.ssrf_payloads(parameter['name'])
+            
+            for payload, callback_id in payloads:
+                try:
+                    test_params = {parameter['name']: payload}
+                    response = session.get(
+                        url,
+                        params=test_params,
+                        timeout=self.timeout,
+                        allow_redirects=False
+                    )
+                    callback_ids.append(callback_id)
+                except:
+                    # Even errors don't prevent callback
+                    callback_ids.append(callback_id)
+            
+            # Check for callbacks
+            triggered = oast_client.check_callbacks(callback_ids, wait_time=10)
+            
+            for callback_data in triggered:
+                findings.append({
+                    'name': 'Blind Server-Side Request Forgery (SSRF)',
+                    'severity': 'Critical',
+                    'url': url,
+                    'parameter': parameter['name'],
+                    'payload': f"OAST callback to {callback_data['subdomain']}",
+                    'evidence': f"DNS/HTTP callback received from {callback_data.get('remote_address', 'server')} via {callback_data.get('protocol', 'unknown')} protocol. This confirms the server made an outbound request to attacker-controlled domain.",
+                    'recommendation': 'Implement strict URL validation with allowlist. Block requests to private IP ranges (RFC1918, RFC4193, RFC3330). Disable unnecessary protocols (file://, gopher://, dict://). Use DNS filtering to prevent resolution of arbitrary domains.'
+                })
+        
+        except Exception as e:
+            if self.config.get('verbose'):
+                print(f"OAST SSRF test error: {e}")
+        
+        return findings
     
     def _test_cloud_metadata(self, url: str, parameter: dict, session) -> list:
         """Test access to cloud metadata services.

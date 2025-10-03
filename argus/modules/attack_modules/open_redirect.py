@@ -111,7 +111,8 @@ class OpenRedirectModule:
                             'evidence': (
                                 f'Server redirects to external domain: {location}. '
                                 f'This can be used for phishing attacks.'
-                            )
+                            ),
+                            'recommendation': 'Validate redirect URLs against allowlist of trusted domains. Use relative URLs for internal redirects. Implement URL validation to reject external domains. Show warning page before external redirects. Avoid using user input directly in redirect targets.'
                         }
                         findings.append(finding)
                         break  # Found vulnerability
@@ -128,7 +129,8 @@ class OpenRedirectModule:
                             'evidence': (
                                 f'JavaScript redirect found using payload: {payload}. '
                                 f'This can be used for phishing attacks.'
-                            )
+                            ),
+                            'recommendation': 'Sanitize user input before using in JavaScript redirects. Implement URL validation on both client and server side. Use allowlist for redirect destinations. Avoid window.location assignments with user-controlled data. Consider using meta refresh with validation.'
                         }
                         findings.append(finding)
                         break

@@ -9,6 +9,7 @@ class CLIReporter:
     
     # ANSI color codes
     COLORS = {
+        'Critical': '\033[95m',  # Magenta
         'High': '\033[91m',      # Red
         'Medium': '\033[93m',    # Yellow
         'Low': '\033[94m',       # Blue
@@ -16,9 +17,11 @@ class CLIReporter:
         'Reset': '\033[0m',      # Reset
         'Bold': '\033[1m',       # Bold
         'Green': '\033[92m',     # Green
+        'Dim': '\033[2m',        # Dim
     }
     
     SEVERITY_ICONS = {
+        'Critical': '🔴',
         'High': '🔴',
         'Medium': '🟡',
         'Low': '🔵',
@@ -67,37 +70,82 @@ class CLIReporter:
             print(f"{self.COLORS['Green']}✅ No vulnerabilities found!{self.COLORS['Reset']}\n")
         else:
             # Sort by severity
-            severity_order = {'High': 0, 'Medium': 1, 'Low': 2, 'Info': 3}
+            severity_order = {'Critical': 0, 'High': 1, 'Medium': 2, 'Low': 3, 'Info': 4}
             sorted_findings = sorted(
                 findings,
-                key=lambda f: (severity_order.get(f['severity'], 4), f['name'])
+                key=lambda f: (severity_order.get(f['severity'], 5), f['name'])
             )
             
-            print(f"Found {len(findings)} issue(s):\n")
+            # Count by severity
+            severity_counts = {'Critical': 0, 'High': 0, 'Medium': 0, 'Low': 0, 'Info': 0}
+            for finding in findings:
+                sev = finding.get('severity', 'Info')
+                if sev in severity_counts:
+                    severity_counts[sev] += 1
+            
+            # Display summary
+            summary_parts = []
+            if severity_counts['Critical'] > 0:
+                summary_parts.append(self._colorize(f"Critical: {severity_counts['Critical']}", 'Critical'))
+            if severity_counts['High'] > 0:
+                summary_parts.append(self._colorize(f"High: {severity_counts['High']}", 'High'))
+            if severity_counts['Medium'] > 0:
+                summary_parts.append(self._colorize(f"Medium: {severity_counts['Medium']}", 'Medium'))
+            if severity_counts['Low'] > 0:
+                summary_parts.append(self._colorize(f"Low: {severity_counts['Low']}", 'Low'))
+            if severity_counts['Info'] > 0:
+                summary_parts.append(self._colorize(f"Info: {severity_counts['Info']}", 'Info'))
+            
+            print(f"Found {self._colorize(str(len(findings)), 'Bold')} issue(s): {' | '.join(summary_parts)}\n")
             
             for idx, finding in enumerate(sorted_findings, 1):
                 severity = finding['severity']
                 icon = self.SEVERITY_ICONS.get(severity, '⚫')
                 
-                print(f"{icon} {self._colorize(severity.upper(), severity)}: {finding['name']}")
-                print(f"   URL: {finding['url']}")
+                # Header
+                print(f"{'─'*70}")
+                print(f"{self.COLORS['Bold']}{icon} [{idx}/{len(findings)}] {self._colorize(severity.upper(), severity)}: {finding['name']}{self.COLORS['Reset']}")
+                print(f"{'─'*70}")
+                
+                # Details
+                print(f"{self.COLORS['Dim']}URL:{self.COLORS['Reset']} {finding['url']}")
                 
                 if finding['parameter'] != 'N/A':
-                    print(f"   Parameter: {finding['parameter']}")
+                    print(f"{self.COLORS['Dim']}Parameter:{self.COLORS['Reset']} {finding['parameter']}")
                 
                 if finding['payload'] != 'N/A':
-                    # Truncate long payloads
                     payload = finding['payload']
                     if len(payload) > 100:
                         payload = payload[:97] + "..."
-                    print(f"   Payload: {payload}")
+                    print(f"{self.COLORS['Dim']}Payload:{self.COLORS['Reset']} {payload}")
                 
-                # Truncate long evidence
                 evidence = finding['evidence']
-                if len(evidence) > 150:
-                    evidence = evidence[:147] + "..."
-                print(f"   Evidence: {evidence}")
-                print()
+                if len(evidence) > 200:
+                    evidence = evidence[:197] + "..."
+                print(f"{self.COLORS['Dim']}Evidence:{self.COLORS['Reset']} {evidence}")
+                
+                # Recommendation (if present)
+                if 'recommendation' in finding and finding['recommendation']:
+                    print(f"\n{self.COLORS['Green']}💡 Recommendation:{self.COLORS['Reset']}")
+                    # Word wrap recommendation at 65 chars
+                    rec = finding['recommendation']
+                    words = rec.split()
+                    lines = []
+                    current_line = "   "
+                    for word in words:
+                        if len(current_line) + len(word) + 1 > 68:
+                            lines.append(current_line)
+                            current_line = "   " + word
+                        else:
+                            if current_line == "   ":
+                                current_line += word
+                            else:
+                                current_line += " " + word
+                    if current_line.strip():
+                        lines.append(current_line)
+                    print('\n'.join(lines))
+                
+                print()  # Extra line between findings
         
         # Print statistics
         print("="*70)
@@ -140,7 +188,7 @@ class JSONReporter:
             output_file: Output file path (prints to stdout if None)
         """
         # Calculate summary statistics
-        severity_counts = {'High': 0, 'Medium': 0, 'Low': 0, 'Info': 0}
+        severity_counts = {'Critical': 0, 'High': 0, 'Medium': 0, 'Low': 0, 'Info': 0}
         for finding in findings:
             sev = finding.get('severity', 'Info')
             if sev in severity_counts:

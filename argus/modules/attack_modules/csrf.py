@@ -107,7 +107,8 @@ class CSRFModule:
                                 f'Form with method {method} and action "{action}" '
                                 f'lacks CSRF token. This may allow Cross-Site '
                                 f'Request Forgery attacks.'
-                            )
+                            ),
+                            'recommendation': 'Implement CSRF tokens for all state-changing operations. Use synchronizer token pattern or double-submit cookie. Validate token on server-side for every POST/PUT/DELETE request. Set SameSite cookie attribute to Strict or Lax.'
                         }
                         findings.append(finding)
         

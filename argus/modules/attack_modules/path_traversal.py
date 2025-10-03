@@ -137,7 +137,8 @@ class PathTraversalModule:
                         'url': url,
                         'parameter': param_name,
                         'payload': payload,
-                        'evidence': evidence
+                        'evidence': evidence,
+                        'recommendation': 'Never pass user input directly to file system operations. Use allowlist of permitted files/paths. Validate and sanitize file paths. Use secure APIs that prevent directory traversal (e.g., Path.GetFullPath() validation). Implement proper access controls.'
                     }
                     findings.append(finding)
                     break  # Found vulnerability, no need to test more

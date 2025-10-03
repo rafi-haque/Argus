@@ -130,7 +130,8 @@ class XSSModule(BaseAttackModule):
                                 'url': url,
                                 'parameter': param_name,
                                 'payload': payload,
-                                'evidence': 'XSS payload confirmed to execute JavaScript in browser. Custom window property was set successfully.'
+                                'evidence': 'XSS payload confirmed to execute JavaScript in browser. Custom window property was set successfully.',
+                                'recommendation': 'Implement proper output encoding: Use context-aware escaping (HTML, JavaScript, URL, CSS). Apply Content Security Policy (CSP) headers. Validate and sanitize all user input. Use security libraries like DOMPurify for rich content.'
                             }
                     
                     except PlaywrightTimeout:
@@ -213,7 +214,8 @@ class XSSModule(BaseAttackModule):
                             'url': url,
                             'parameter': param_name,
                             'payload': payload,
-                            'evidence': evidence
+                            'evidence': evidence,
+                            'recommendation': 'Encode output based on context: HTML entity encoding for HTML context, JavaScript encoding for JS context, URL encoding for URLs. Implement Content Security Policy (CSP). Use template engines with auto-escaping. Validate input on server side.'
                         }
             
             except requests.exceptions.RequestException:

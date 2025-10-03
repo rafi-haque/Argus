@@ -190,18 +190,20 @@ class CommandInjectionModule:
                         'evidence': (
                             f'Response time: {elapsed:.2f}s (baseline: {baseline_time:.2f}s). '
                             f'Delay of ~{self.sleep_time}s indicates command execution.'
-                        )
+                        ),
+                        'recommendation': 'Never pass user input to system commands. Use allowlist of permitted values. Avoid shell execution - use direct API calls instead. If shell use is unavoidable, use proper escaping libraries. Implement strict input validation.'
                     }
             
             except requests.exceptions.Timeout:
-                # Timeout could indicate successful sleep/timeout command
+                # Timeout could indicate successful injection
                 return {
                     'name': f'Command Injection - Time-Based ({os_type})',
                     'severity': 'Critical',
                     'url': url,
                     'parameter': param_name,
                     'payload': payload,
-                    'evidence': 'Request timeout indicates possible command execution causing delay.'
+                    'evidence': f'Request timed out (>{self.timeout}s), indicating possible command execution.',
+                    'recommendation': 'Avoid executing system commands with user input. Use language-native APIs instead of shell commands. If shell use is required, properly escape all user input using shell-specific escaping functions. Implement command allowlisting.'
                 }
             except requests.exceptions.RequestException:
                 continue
@@ -239,7 +241,8 @@ class CommandInjectionModule:
                         'url': url,
                         'parameter': param_name,
                         'payload': payload,
-                        'evidence': f'Marker "{self.marker}" found in response, indicating command execution.'
+                        'evidence': f'Marker "{self.marker}" found in response, indicating command execution.',
+                        'recommendation': 'Use parameterized APIs instead of shell commands. Never concatenate user input into commands. Implement strict input validation with allowlists. Use sandboxing or containerization for command execution. Apply principle of least privilege.'
                     }
             
             except requests.exceptions.RequestException:

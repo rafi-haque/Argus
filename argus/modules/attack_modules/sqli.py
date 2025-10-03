@@ -177,7 +177,8 @@ class SQLiModule(BaseAttackModule):
                         'url': url,
                         'parameter': param_name,
                         'payload': true_payload,
-                        'evidence': evidence
+                        'evidence': evidence,
+                        'recommendation': 'Use parameterized queries (prepared statements) with bound parameters. Never concatenate user input into SQL queries. Use ORM frameworks with proper escaping. Implement input validation and least privilege database access.'
                     }
             
             except requests.exceptions.RequestException:
@@ -233,7 +234,8 @@ class SQLiModule(BaseAttackModule):
                     'url': url,
                     'parameter': param_name,
                     'payload': payload,
-                    'evidence': f"Request timed out (>{self.timeout}s), indicating successful time-based injection"
+                    'evidence': f"Request timed out (>{self.timeout}s), indicating successful time-based injection",
+                    'recommendation': 'Use parameterized queries (prepared statements) exclusively. Avoid dynamic SQL construction. Implement database query timeout limits. Use ORM frameworks with built-in protection against SQL injection.'
                 }
             
             except requests.exceptions.RequestException:
@@ -288,7 +290,8 @@ class SQLiModule(BaseAttackModule):
                             'url': url,
                             'parameter': param_name,
                             'payload': payload,
-                            'evidence': f'SQL error pattern "{pattern}" detected in response'
+                            'evidence': f'SQL error pattern "{pattern}" detected in response',
+                            'recommendation': 'Use parameterized queries with bound parameters. Implement custom error pages that do not expose database errors. Use prepared statements for all database queries. Apply principle of least privilege for database accounts.'
                         }
             
             except requests.exceptions.RequestException:
@@ -344,7 +347,8 @@ class SQLiModule(BaseAttackModule):
                                     'url': url,
                                     'parameter': param_name,
                                     'payload': payload,
-                                    'evidence': f'UNION query successful, database info leaked: "{indicator}"'
+                                    'evidence': f'UNION query successful, database info leaked: "{indicator}"',
+                                    'recommendation': 'Use parameterized queries to prevent SQL injection. Never expose database version or schema information. Implement proper access controls. Use stored procedures with parameterized inputs where possible.'
                                 }
                         
                         # Even without version info, significant size change is suspicious
@@ -355,7 +359,8 @@ class SQLiModule(BaseAttackModule):
                                 'url': url,
                                 'parameter': param_name,
                                 'payload': payload,
-                                'evidence': f'UNION query caused significant response size change ({size_diff} bytes)'
+                                'evidence': f'UNION query caused significant response size change ({size_diff} bytes)',
+                                'recommendation': 'Use parameterized queries (prepared statements) for all database operations. Validate and sanitize all user inputs. Implement web application firewall (WAF) rules. Conduct regular security code reviews.'
                             }
                 
                 except requests.exceptions.RequestException:

@@ -89,7 +89,8 @@ class InsecureHeadersModule(BaseAttackModule):
                         'url': url,
                         'parameter': 'N/A',
                         'payload': 'N/A',
-                        'evidence': f'Header "{header_name}" is missing. {header_info["description"]}.'
+                        'evidence': f'Header "{header_name}" is missing. {header_info["description"]}.',
+                        'recommendation': f'Add {header_name} header with appropriate value. See OWASP Secure Headers Project for recommended configurations. {header_info["description"]}'
                     }
                     findings.append(finding)
             
@@ -104,7 +105,8 @@ class InsecureHeadersModule(BaseAttackModule):
                         'url': url,
                         'parameter': 'N/A',
                         'payload': 'N/A',
-                        'evidence': f'Server header reveals version information: "{server_value}"'
+                        'evidence': f'Server header reveals version information: "{server_value}"',
+                        'recommendation': 'Remove or obfuscate Server header to prevent version disclosure. Configure web server to suppress detailed version information. Use generic values or remove header entirely.'
                     }
                     findings.append(finding)
             
@@ -116,7 +118,8 @@ class InsecureHeadersModule(BaseAttackModule):
                     'url': url,
                     'parameter': 'N/A',
                     'payload': 'N/A',
-                    'evidence': f'X-Powered-By header reveals technology: "{powered_by}"'
+                    'evidence': f'X-Powered-By header reveals technology: "{powered_by}"',
+                    'recommendation': 'Remove X-Powered-By header to prevent technology disclosure. Configure application framework to suppress this header. This reduces attack surface by hiding implementation details.'
                 }
                 findings.append(finding)
         

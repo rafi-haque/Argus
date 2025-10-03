@@ -84,7 +84,8 @@ class CORSModule:
                                     'Access-Control-Allow-Origin: * with '
                                     'Access-Control-Allow-Credentials: true. '
                                     'This allows any origin to make credentialed requests.'
-                                )
+                                ),
+                                'recommendation': 'Never use Access-Control-Allow-Origin: * with credentials. Specify exact allowed origins. Validate Origin header on server-side. Use allowlist of trusted domains. Remove Access-Control-Allow-Credentials if not needed.'
                             }
                             findings.append(finding)
                         else:
@@ -98,7 +99,8 @@ class CORSModule:
                                 'evidence': (
                                     'Access-Control-Allow-Origin: * allows any origin '
                                     'to read responses. Consider restricting to specific origins.'
-                                )
+                                ),
+                                'recommendation': 'Replace wildcard (*) with specific trusted origins. Implement origin validation on server-side. Use allowlist of approved domains. Consider if CORS is necessary for your use case.'
                             }
                             findings.append(finding)
                     
@@ -115,7 +117,8 @@ class CORSModule:
                                     f'Server reflects arbitrary origin "{test_origin}" with '
                                     f'credentials enabled. This allows any origin to make '
                                     f'credentialed requests.'
-                                )
+                                ),
+                                'recommendation': 'Implement strict origin validation. Use allowlist of exact trusted origins. Never reflect arbitrary origins with credentials. Validate Origin header against known safe values before setting CORS headers.'
                             }
                             findings.append(finding)
                         else:
@@ -128,7 +131,8 @@ class CORSModule:
                                 'evidence': (
                                     f'Server reflects arbitrary origin "{test_origin}". '
                                     f'This may allow unauthorized cross-origin access.'
-                                )
+                                ),
+                                'recommendation': 'Validate Origin header before reflection. Maintain allowlist of approved origins. Reject requests from untrusted origins. Consider using specific origin values instead of dynamic reflection.'
                             }
                             findings.append(finding)
                     
@@ -143,7 +147,8 @@ class CORSModule:
                             'evidence': (
                                 'Server allows "null" origin. This can be exploited '
                                 'via sandboxed iframes or data: URLs.'
-                            )
+                            ),
+                            'recommendation': 'Reject "null" Origin header. Implement proper origin validation. Use specific trusted origins only. Be aware that sandboxed iframes send Origin: null.'
                         }
                         findings.append(finding)
                 

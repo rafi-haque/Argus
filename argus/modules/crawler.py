@@ -34,6 +34,10 @@ class Crawler:
         # Passive crawling
         site_map = self._passive_crawl(seed_url, scope_config)
         
+        # Discover common API endpoints
+        api_map = self._discover_api_endpoints(seed_url, scope_config)
+        site_map.extend(api_map)
+        
         # Active crawling with Playwright (if enabled)
         if self.use_active_crawling:
             try:
@@ -44,7 +48,16 @@ class Crawler:
                 if self.config.get('verbose'):
                     print(f"Warning: Active crawling failed: {e}")
         
-        return site_map
+        # Remove duplicates
+        seen_urls = set()
+        unique_map = []
+        for entry in site_map:
+            url_key = f"{entry['url']}:{entry['method']}"
+            if url_key not in seen_urls:
+                seen_urls.add(url_key)
+                unique_map.append(entry)
+        
+        return unique_map
     
     def _passive_crawl(self, seed_url: str, scope_config: dict) -> List[Dict]:
         """Discover site endpoints and parameters using passive crawling.
@@ -219,6 +232,112 @@ class Crawler:
             'method': method,
             'parameters': parameters
         }
+    
+    def _discover_api_endpoints(self, seed_url: str, scope_config: dict) -> List[Dict]:
+        """Discover common API endpoints by probing known patterns.
+        
+        Args:
+            seed_url: Base URL
+            scope_config: Scope configuration
+        
+        Returns:
+            list: Discovered API endpoint entries
+        """
+        api_map = []
+        parsed = urlparse(seed_url)
+        base_url = f"{parsed.scheme}://{parsed.netloc}"
+        
+        session = requests.Session()
+        if self.config.get('auth'):
+            auth = self.config['auth']
+            if auth['type'] == 'header':
+                session.headers[auth['name']] = auth['value']
+        
+        # Common API path patterns
+        api_patterns = [
+            '/api',
+            '/api/v1',
+            '/api/v2',
+            '/rest',
+            '/rest/v1',
+            '/rest/api',
+            '/rest/user',
+            '/rest/products',
+            '/graphql',
+            '/v1',
+            '/v2',
+        ]
+        
+        # Common resource endpoints (RESTful patterns)
+        resource_patterns = [
+            'users', 'user', 'products', 'product', 'items', 'item',
+            'orders', 'order', 'accounts', 'account', 'auth', 'login',
+            'register', 'profile', 'search', 'comments', 'posts',
+            'reviews', 'basket', 'cart', 'checkout', 'payment'
+        ]
+        
+        discovered_endpoints = []
+        
+        # Try API base paths
+        for api_path in api_patterns:
+            test_url = f"{base_url}{api_path}"
+            if not self._in_scope(test_url, scope_config):
+                continue
+            
+            try:
+                response = session.get(test_url, timeout=self.timeout, allow_redirects=True)
+                if response.status_code != 404:
+                    discovered_endpoints.append(test_url)
+                    
+                    # Try common resources under this API path
+                    for resource in resource_patterns:
+                        resource_url = f"{test_url}/{resource}"
+                        if resource_url not in self.visited_urls:
+                            try:
+                                res_response = session.get(resource_url, timeout=self.timeout, allow_redirects=True)
+                                if res_response.status_code != 404:
+                                    discovered_endpoints.append(resource_url)
+                            except requests.exceptions.RequestException:
+                                pass
+            except requests.exceptions.RequestException:
+                pass
+        
+        # Create site map entries for discovered endpoints
+        for url in discovered_endpoints:
+            if url not in self.visited_urls:
+                self.visited_urls.add(url)
+                entry = self._create_site_map_entry(url, 'GET')
+                api_map.append(entry)
+                
+                # For search-like endpoints, add common query parameters
+                if any(term in url.lower() for term in ['search', 'find', 'query', 'filter', 'products', 'items', 'users']):
+                    # Add entries with common test parameters
+                    test_params = [
+                        ('q', 'test'),
+                        ('search', 'test'),
+                        ('query', 'test'),
+                        ('id', '1'),
+                        ('filter', 'test'),
+                        ('keyword', 'test')
+                    ]
+                    
+                    for param_name, param_value in test_params:
+                        param_url = f"{url}?{param_name}={param_value}"
+                        param_entry = {
+                            'url': param_url,
+                            'method': 'GET',
+                            'parameters': [{
+                                'name': param_name,
+                                'value': param_value,
+                                'location': 'query'
+                            }]
+                        }
+                        api_map.append(param_entry)
+                
+                if self.config.get('verbose'):
+                    print(f"   Discovered API endpoint: {url}")
+        
+        return api_map
     
     def _active_crawl(self, seed_url: str, scope_config: dict) -> List[Dict]:
         """Discover endpoints using headless browser (Playwright).

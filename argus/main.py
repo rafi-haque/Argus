@@ -165,6 +165,11 @@ async def async_main(args):
         'auth': None,
         'scope': policy_config['scope'],
         'performance': policy_config['performance'],
+        'crawler': {
+            'max_depth': policy_config['scope'].get('max_depth', 3),
+            'max_pages': policy_config['scope'].get('max_pages', 100),
+            'active': True,  # Enable active crawling for SPAs
+        },
         'verbose': args.verbose,
         'use_browser_validation': True,  # Enable XSS browser validation
         'timeout': 10,

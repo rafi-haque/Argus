@@ -156,6 +156,8 @@ All modules executing correctly!
 2. `7c3198c` - Enhance SQLi detection for Juice Shop vulnerabilities  
 3. `90be7d1` - Add debug logging for SQLi module execution
 4. `37e325a` - **Fix critical orchestrator bug - module name mismatch** ✅
+5. `0fc5dda` - Update JUICE_SHOP_PROGRESS.md with successful fix
+6. `f911c01` - **Fix NoneType error when scanning URLs without parameters** ✅
 
 ## Files Modified
 - `argus/modules/attack_modules/async_sqli.py` - Fixed name() and enhanced applicability

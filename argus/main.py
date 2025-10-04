@@ -176,6 +176,9 @@ async def async_main(args):
         'max_connections': 100,
         'max_keepalive_connections': 50,
         'rate_limit_per_second': 20,
+        # Parallel scanning configuration
+        'max_concurrent_scans': 10,  # Max endpoints to scan in parallel
+        'module_timeout': 30,  # Timeout per module in seconds
     }
     
     # Override with command-line arguments if provided

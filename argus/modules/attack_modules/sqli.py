@@ -1,12 +1,12 @@
 """SQL Injection attack module - Boolean-based and Time-based detection."""
 from typing import Dict, List
 import time
-import requests
+import httpx
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
-from .base import BaseAttackModule
+from .async_base import AsyncBaseAttackModule
 
 
-class SQLiModule(BaseAttackModule):
+class SQLiModule(AsyncBaseAttackModule):
     """Detects SQL injection vulnerabilities."""
     
     # Boolean-based payloads
@@ -87,13 +87,13 @@ class SQLiModule(BaseAttackModule):
         
         return False
     
-    def scan(self, url: str, parameter: dict, session: requests.Session) -> List[Dict]:
+    async def scan(self, url: str, parameter: dict, client: httpx.AsyncClient) -> List[Dict]:
         """Scan for SQL injection vulnerabilities.
         
         Args:
             url: URL to test
             parameter: Parameter to test
-            session: Requests session
+            client: httpx AsyncClient
         
         Returns:
             list: Findings
@@ -101,31 +101,33 @@ class SQLiModule(BaseAttackModule):
         findings = []
         
         # Try error-based SQLi first (fastest and most reliable)
-        error_finding = self._test_error_based(url, parameter['name'], parameter['location'], session)
+        error_finding = await self._test_error_based(url, parameter['name'], parameter['location'], client)
         if error_finding:
             findings.append(error_finding)
             return findings  # Found SQLi, no need to test further
         
         # Try boolean-based SQLi
-        boolean_finding = self._test_boolean_sqli(url, parameter, session)
+        boolean_finding = await self._test_boolean_sqli(url, parameter, client)
         if boolean_finding:
             findings.append(boolean_finding)
             return findings  # Found SQLi
         
         # Try UNION-based SQLi
-        union_finding = self._test_union_based(url, parameter['name'], parameter['location'], session)
+        union_finding = await self._test_union_based(url, parameter['name'], parameter['location'], client)
         if union_finding:
             findings.append(union_finding)
             return findings  # Found SQLi
         
         # Try time-based SQLi (slowest, only if others didn't find anything)
-        time_finding = self._test_time_sqli(url, parameter, session)
+        time_finding = await self._test_time_sqli(url, parameter, client)
         if time_finding:
             findings.append(time_finding)
         
         return findings
+        
+        return findings
     
-    def _test_boolean_sqli(self, url: str, parameter: dict, session: requests.Session) -> Dict:
+    async def _test_boolean_sqli(self, url: str, parameter: dict, client: httpx.AsyncClient) -> Dict:
         """Test for boolean-based SQL injection.
         
         Args:
@@ -141,9 +143,9 @@ class SQLiModule(BaseAttackModule):
         
         # Get baseline response
         try:
-            baseline_response = session.get(url, timeout=self.timeout)
+            baseline_response = await client.get(url, timeout=self.timeout)
             baseline_size = len(baseline_response.content)
-        except requests.exceptions.RequestException:
+        except (httpx.HTTPError, httpx.TimeoutException):
             return None
         
         # Test each payload pair
@@ -151,12 +153,12 @@ class SQLiModule(BaseAttackModule):
             try:
                 # Test TRUE condition
                 true_url = self._inject_payload(url, param_name, true_payload, param_location)
-                true_response = session.get(true_url, timeout=self.timeout)
+                true_response = await client.get(true_url, timeout=self.timeout)
                 true_size = len(true_response.content)
                 
                 # Test FALSE condition
                 false_url = self._inject_payload(url, param_name, false_payload, param_location)
-                false_response = session.get(false_url, timeout=self.timeout)
+                false_response = await client.get(false_url, timeout=self.timeout)
                 false_size = len(false_response.content)
                 
                 # Check for differential response
@@ -181,12 +183,12 @@ class SQLiModule(BaseAttackModule):
                         'recommendation': 'Use parameterized queries (prepared statements) with bound parameters. Never concatenate user input into SQL queries. Use ORM frameworks with proper escaping. Implement input validation and least privilege database access.'
                     }
             
-            except requests.exceptions.RequestException:
+            except (httpx.HTTPError, httpx.TimeoutException):
                 continue
         
         return None
     
-    def _test_time_sqli(self, url: str, parameter: dict, session: requests.Session) -> Dict:
+    async def _test_time_sqli(self, url: str, parameter: dict, client: httpx.AsyncClient) -> Dict:
         """Test for time-based SQL injection.
         
         Args:
@@ -206,7 +208,7 @@ class SQLiModule(BaseAttackModule):
                 test_url = self._inject_payload(url, param_name, payload, param_location)
                 
                 start_time = time.time()
-                response = session.get(test_url, timeout=self.timeout)
+                response = await client.get(test_url, timeout=self.timeout)
                 elapsed = time.time() - start_time
                 
                 # If response took significantly longer, likely SQLi
@@ -238,12 +240,12 @@ class SQLiModule(BaseAttackModule):
                     'recommendation': 'Use parameterized queries (prepared statements) exclusively. Avoid dynamic SQL construction. Implement database query timeout limits. Use ORM frameworks with built-in protection against SQL injection.'
                 }
             
-            except requests.exceptions.RequestException:
+            except (httpx.HTTPError, httpx.TimeoutException):
                 continue
         
         return None
     
-    def _test_error_based(self, url: str, param_name: str, param_location: str, session) -> Dict:
+    async def _test_error_based(self, url: str, param_name: str, param_location: str, client: httpx.AsyncClient) -> Dict:
         """Test for error-based SQL injection.
         
         Args:
@@ -278,7 +280,7 @@ class SQLiModule(BaseAttackModule):
         for payload in self.ERROR_PAYLOADS[:3]:  # Test first 3
             try:
                 test_url = self._inject_payload(url, param_name, payload, param_location)
-                response = session.get(test_url, timeout=self.timeout)
+                response = await client.get(test_url, timeout=self.timeout)
                 
                 response_lower = response.text.lower()
                 
@@ -294,12 +296,12 @@ class SQLiModule(BaseAttackModule):
                             'recommendation': 'Use parameterized queries with bound parameters. Implement custom error pages that do not expose database errors. Use prepared statements for all database queries. Apply principle of least privilege for database accounts.'
                         }
             
-            except requests.exceptions.RequestException:
+            except (httpx.HTTPError, httpx.TimeoutException):
                 continue
         
         return None
     
-    def _test_union_based(self, url: str, param_name: str, param_location: str, session) -> Dict:
+    async def _test_union_based(self, url: str, param_name: str, param_location: str, client: httpx.AsyncClient) -> Dict:
         """Test for UNION-based SQL injection.
         
         Args:
@@ -314,13 +316,13 @@ class SQLiModule(BaseAttackModule):
         try:
             # Get baseline
             baseline_url = url
-            baseline_response = session.get(baseline_url, timeout=self.timeout)
+            baseline_response = await client.get(baseline_url, timeout=self.timeout)
             baseline_length = len(baseline_response.text)
             
             for payload in self.UNION_PAYLOADS[:4]:  # Test first 4
                 try:
                     test_url = self._inject_payload(url, param_name, payload, param_location)
-                    response = session.get(test_url, timeout=self.timeout)
+                    response = await client.get(test_url, timeout=self.timeout)
                     
                     # UNION queries often significantly change response size
                     size_diff = abs(len(response.text) - baseline_length)
@@ -363,10 +365,10 @@ class SQLiModule(BaseAttackModule):
                                 'recommendation': 'Use parameterized queries (prepared statements) for all database operations. Validate and sanitize all user inputs. Implement web application firewall (WAF) rules. Conduct regular security code reviews.'
                             }
                 
-                except requests.exceptions.RequestException:
+                except (httpx.HTTPError, httpx.TimeoutException):
                     continue
         
-        except requests.exceptions.RequestException:
+        except (httpx.HTTPError, httpx.TimeoutException):
             pass
         
         return None

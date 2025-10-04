@@ -1,4 +1,5 @@
 """Enhanced attack module with more SQLi payloads and techniques."""
+import httpx
 from argus.modules.attack_modules.sqli import SQLiModule
 
 
@@ -36,7 +37,7 @@ class EnhancedSQLiModule(SQLiModule):
     def description(self) -> str:
         return "Enhanced SQL Injection detection with database-specific payloads"
     
-    def _test_error_based_sqli(self, url: str, parameter: dict, session) -> list:
+    async def _test_error_based_sqli(self, url: str, parameter: dict, client: httpx.AsyncClient) -> list:
         """Test for error-based SQL injection.
         
         Args:
@@ -66,7 +67,7 @@ class EnhancedSQLiModule(SQLiModule):
             try:
                 # Test parameter
                 test_params = {parameter['name']: payload}
-                response = session.get(url, params=test_params, timeout=self.timeout)
+                response = await client.get(url, params=test_params, timeout=self.timeout)
                 
                 # Check for SQL errors in response
                 for pattern in error_patterns:
@@ -88,7 +89,7 @@ class EnhancedSQLiModule(SQLiModule):
         
         return findings
     
-    def _test_union_based_sqli(self, url: str, parameter: dict, session) -> list:
+    async def _test_union_based_sqli(self, url: str, parameter: dict, client: httpx.AsyncClient) -> list:
         """Test for UNION-based SQL injection.
         
         Args:
@@ -111,12 +112,12 @@ class EnhancedSQLiModule(SQLiModule):
         try:
             # Get baseline
             baseline_params = {parameter['name']: parameter['value']}
-            baseline_response = session.get(url, params=baseline_params, timeout=self.timeout)
+            baseline_response = await client.get(url, params=baseline_params, timeout=self.timeout)
             baseline_length = len(baseline_response.text)
             
             for payload in union_payloads:
                 test_params = {parameter['name']: payload}
-                response = session.get(url, params=test_params, timeout=self.timeout)
+                response = await client.get(url, params=test_params, timeout=self.timeout)
                 
                 # UNION queries often significantly change response size
                 if abs(len(response.text) - baseline_length) > 500:
@@ -140,13 +141,13 @@ class EnhancedSQLiModule(SQLiModule):
         
         return findings
     
-    def scan(self, url: str, parameter: dict, session) -> list:
+    async def scan(self, url: str, parameter: dict, client: httpx.AsyncClient) -> list:
         """Enhanced scan with multiple SQLi techniques.
         
         Args:
             url: URL to scan
             parameter: Parameter dict
-            session: Requests session
+            client: httpx client
         
         Returns:
             list: All findings
@@ -154,10 +155,10 @@ class EnhancedSQLiModule(SQLiModule):
         findings = []
         
         # Run parent class tests (boolean and time-based)
-        findings.extend(super().scan(url, parameter, session))
+        findings.extend(await super().scan(url, parameter, client))
         
         # Run enhanced tests
-        findings.extend(self._test_error_based_sqli(url, parameter, session))
-        findings.extend(self._test_union_based_sqli(url, parameter, session))
+        findings.extend(await self._test_error_based_sqli(url, parameter, client))
+        findings.extend(await self._test_union_based_sqli(url, parameter, client))
         
         return findings

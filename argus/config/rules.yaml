@@ -1,0 +1,389 @@
+# Argus Scanner - Rule-Based Module Prioritization
+# 
+# This file defines rules for intelligent module selection and prioritization.
+# Rules are evaluated in weight order (highest first).
+#
+# Rule Structure:
+# - name: Descriptive rule name
+#   condition: Matching criteria (see operators below)
+#   modules: List of modules to run (in order)
+#   weight: Priority weight (0-100, higher = more important)
+#   enabled: true/false
+#   description: What this rule does
+#   tags: Optional tags for filtering
+#
+# Condition Operators:
+# - contains: Check if value contains keywords (list or string)
+# - in: Check if value is in list
+# - equals: Exact match
+# - regex: Regular expression match
+# - startswith: Prefix match
+# - endswith: Suffix match
+# - not: Negation
+# - any: Match any sub-criteria (OR)
+# - all: Match all sub-criteria (AND)
+#
+# Condition Fields:
+# - param_name: Parameter name (e.g., 'id', 'user', 'url')
+# - param_location: Where parameter appears ('query', 'body', 'cookie', 'header')
+# - url_pattern: URL pattern matching
+# - method: HTTP method (GET, POST, PUT, DELETE, etc.)
+# - has_params: Check if request has specific parameters
+
+rules:
+  # Critical: URL/Redirect Parameters
+  - name: URL/Redirect Parameters
+    condition:
+      param_name:
+        contains:
+          - url
+          - redirect
+          - return
+          - next
+          - continue
+          - dest
+          - destination
+          - redir
+          - link
+          - goto
+          - forward
+          - target
+    modules:
+      - open_redirect
+      - ssrf
+      - xss
+    weight: 100
+    enabled: true
+    description: Parameters that handle URLs are highly vulnerable to SSRF and open redirects
+    tags:
+      - redirect
+      - ssrf
+      - critical
+
+  # Critical: File/Path Parameters
+  - name: File/Path Parameters
+    condition:
+      param_name:
+        contains:
+          - file
+          - path
+          - dir
+          - folder
+          - upload
+          - document
+          - download
+          - template
+          - include
+          - page
+    modules:
+      - path_traversal
+      - lfi_rfi
+      - command_injection
+      - xss
+    weight: 95
+    enabled: true
+    description: File parameters enable path traversal and local file inclusion
+    tags:
+      - file
+      - traversal
+      - critical
+
+  # Critical: Command/System Parameters
+  - name: Command/System Parameters
+    condition:
+      param_name:
+        contains:
+          - cmd
+          - command
+          - exec
+          - system
+          - shell
+          - ping
+          - host
+          - ip
+          - run
+          - execute
+    modules:
+      - command_injection
+      - sqli
+      - xss
+    weight: 95
+    enabled: true
+    description: Command parameters are prime targets for remote code execution
+    tags:
+      - rce
+      - command
+      - critical
+
+  # High: Authentication Parameters
+  - name: Authentication Parameters
+    condition:
+      param_name:
+        contains:
+          - user
+          - pass
+          - login
+          - auth
+          - email
+          - username
+          - password
+          - token
+          - session
+          - key
+    modules:
+      - sqli
+      - xss
+      - csrf
+    weight: 90
+    enabled: true
+    description: Authentication parameters are critical security boundaries
+    tags:
+      - auth
+      - credential
+      - high
+
+  # High: API Endpoints
+  - name: API Endpoints
+    condition:
+      url_pattern:
+        contains:
+          - /api/
+          - api.
+          - /v1/
+          - /v2/
+          - /rest/
+          - /graphql
+    modules:
+      - api_vulnerabilities
+      - sqli
+      - xss
+      - idor
+    weight: 85
+    enabled: true
+    description: API endpoints have unique vulnerability patterns
+    tags:
+      - api
+      - rest
+      - high
+
+  # Medium-High: Search Parameters
+  - name: Search Parameters
+    condition:
+      param_name:
+        contains:
+          - search
+          - query
+          - q
+          - keyword
+          - term
+          - find
+          - filter
+    modules:
+      - xss
+      - sqli
+    weight: 80
+    enabled: true
+    description: Search inputs are commonly reflected in responses
+    tags:
+      - search
+      - input
+      - medium
+
+  # Medium-High: Data/Serialization Parameters
+  - name: Data/Object Parameters
+    condition:
+      param_name:
+        contains:
+          - data
+          - object
+          - payload
+          - serialized
+          - json
+          - xml
+          - content
+          - body
+    modules:
+      - insecure_deserialization
+      - xss
+      - sqli
+      - xxe
+    weight: 75
+    enabled: true
+    description: Serialized data can lead to deserialization attacks
+    tags:
+      - serialization
+      - data
+      - medium
+
+  # Medium: ID Parameters
+  - name: ID Parameters
+    condition:
+      param_name:
+        in:
+          - id
+          - userid
+          - user_id
+          - item_id
+          - product_id
+          - order_id
+          - account_id
+          - object_id
+          - record_id
+          - doc_id
+    modules:
+      - sqli
+      - idor
+      - xss
+    weight: 70
+    enabled: true
+    description: ID parameters are common targets for SQLi and IDOR
+    tags:
+      - id
+      - database
+      - medium
+
+  # Medium: State-Changing Requests
+  - name: POST/PUT/PATCH Requests
+    condition:
+      method:
+        in:
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+    modules:
+      - csrf
+      - xss
+      - sqli
+    weight: 65
+    enabled: true
+    description: State-changing operations need CSRF protection
+    tags:
+      - csrf
+      - state-change
+      - medium
+
+  # Medium: Callback Parameters
+  - name: Callback Parameters
+    condition:
+      param_name:
+        contains:
+          - callback
+          - jsonp
+          - cb
+          - return_to
+          - success_url
+          - error_url
+    modules:
+      - xss
+      - open_redirect
+    weight: 60
+    enabled: true
+    description: Callback parameters can lead to XSS via JSONP
+    tags:
+      - callback
+      - jsonp
+      - medium
+
+  # Medium: Template/View Parameters
+  - name: Template Parameters
+    condition:
+      param_name:
+        contains:
+          - template
+          - view
+          - theme
+          - skin
+          - layout
+    modules:
+      - ssti
+      - path_traversal
+      - xss
+    weight: 55
+    enabled: true
+    description: Template parameters may be vulnerable to SSTI
+    tags:
+      - ssti
+      - template
+      - medium
+
+  # Low-Medium: URL-Level Checks
+  - name: Global Security Headers
+    condition:
+      param_name:
+        equals: null
+    modules:
+      - insecure_headers
+      - cors
+    weight: 50
+    enabled: true
+    description: Check security headers and CORS on all endpoints
+    tags:
+      - headers
+      - config
+      - low
+
+  # Contextual: File Upload Endpoints
+  - name: File Upload Detection
+    condition:
+      url_pattern:
+        contains:
+          - upload
+          - attach
+          - import
+    modules:
+      - path_traversal
+      - command_injection
+      - xss
+    weight: 85
+    enabled: true
+    description: File upload endpoints need special attention
+    tags:
+      - upload
+      - file
+      - high
+
+  # Contextual: Admin Panels
+  - name: Admin Panel Detection
+    condition:
+      url_pattern:
+        contains:
+          - /admin
+          - /dashboard
+          - /management
+          - /panel
+    modules:
+      - auth_bypass
+      - idor
+      - sqli
+      - xss
+    weight: 90
+    enabled: true
+    description: Admin panels are high-value targets
+    tags:
+      - admin
+      - privileged
+      - high
+
+  # Contextual: Email Parameters
+  - name: Email Parameters
+    condition:
+      param_name:
+        contains:
+          - email
+          - mail
+          - recipient
+          - to
+          - from
+          - subject
+    modules:
+      - xss
+      - command_injection
+      - header_injection
+    weight: 70
+    enabled: true
+    description: Email parameters can lead to header injection
+    tags:
+      - email
+      - injection
+      - medium

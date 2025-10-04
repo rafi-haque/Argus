@@ -1,9 +1,10 @@
 """CORS (Cross-Origin Resource Sharing) misconfiguration detection module."""
-import requests
+import httpx
 from typing import Dict, List
+from .async_base import AsyncBaseAttackModule
 
 
-class CORSModule:
+class CORSModule(AsyncBaseAttackModule):
     """Module to detect CORS misconfigurations."""
     
     def __init__(self, config: dict):
@@ -43,7 +44,7 @@ class CORSModule:
         # CORS is a URL-level check, always applicable
         return True
     
-    def scan(self, url: str, parameter: dict, session: requests.Session) -> List[Dict]:
+    async def scan(self, url: str, parameter: dict, client: httpx.AsyncClient) -> List[Dict]:
         """Check for CORS misconfigurations.
         
         Args:
@@ -63,7 +64,7 @@ class CORSModule:
                     'Origin': test_origin
                 }
                 
-                response = session.get(url, headers=headers, timeout=self.timeout)
+                response = await client.get(url, headers=headers, timeout=self.timeout)
                 
                 # Check CORS headers in response
                 acao = response.headers.get('Access-Control-Allow-Origin')
@@ -156,7 +157,7 @@ class CORSModule:
                 if findings:
                     break
         
-        except requests.exceptions.RequestException as e:
+        except (httpx.HTTPError, httpx.TimeoutException) as e:
             if self.config.get('verbose'):
                 print(f"Warning: Could not check CORS for {url}: {e}")
         

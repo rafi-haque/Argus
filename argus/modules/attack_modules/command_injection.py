@@ -1,5 +1,5 @@
 """Command Injection detection module."""
-import requests
+import httpx
 import time
 from typing import Dict, List
 
@@ -91,7 +91,7 @@ class CommandInjectionModule:
         
         return any(indicator in param_name for indicator in cmd_indicators)
     
-    def scan(self, url: str, parameter: dict, session: requests.Session) -> List[Dict]:
+    async def scan(self, url: str, parameter: dict, client: httpx.AsyncClient) -> List[Dict]:
         """Test for command injection vulnerabilities.
         
         Args:
@@ -110,10 +110,10 @@ class CommandInjectionModule:
         # Get baseline response time
         try:
             start = time.time()
-            baseline_response = session.get(url, timeout=self.timeout)
+            baseline_response = await client.get(url, timeout=self.timeout)
             baseline_time = time.time() - start
             baseline_text = baseline_response.text
-        except requests.exceptions.RequestException:
+        except (httpx.HTTPError, httpx.TimeoutException):
             return findings
         
         # Test time-based injection (Unix sleep)
@@ -153,8 +153,7 @@ class CommandInjectionModule:
         
         return findings
     
-    def _test_time_based(self, url: str, param_name: str, param_location: str,
-                        session: requests.Session, payloads: list,
+    async def _test_time_based(self, url: str, param_name: str, param_location: str, client: httpx.AsyncClient, payloads: list,
                         baseline_time: float, os_type: str) -> Dict:
         """Test time-based command injection.
         
@@ -175,7 +174,7 @@ class CommandInjectionModule:
                 test_url = self._inject_payload(url, param_name, payload, param_location)
                 
                 start = time.time()
-                response = session.get(test_url, timeout=self.timeout + self.sleep_time + 5)
+                response = await client.get(test_url, timeout=self.timeout + self.sleep_time + 5)
                 elapsed = time.time() - start
                 
                 # If response took significantly longer than baseline + sleep_time
@@ -205,13 +204,12 @@ class CommandInjectionModule:
                     'evidence': f'Request timed out (>{self.timeout}s), indicating possible command execution.',
                     'recommendation': 'Avoid executing system commands with user input. Use language-native APIs instead of shell commands. If shell use is required, properly escape all user input using shell-specific escaping functions. Implement command allowlisting.'
                 }
-            except requests.exceptions.RequestException:
+            except (httpx.HTTPError, httpx.TimeoutException):
                 continue
         
         return None
     
-    def _test_echo_based(self, url: str, param_name: str, param_location: str,
-                        session: requests.Session, payloads: list,
+    async def _test_echo_based(self, url: str, param_name: str, param_location: str, client: httpx.AsyncClient, payloads: list,
                         baseline_text: str, os_type: str) -> Dict:
         """Test echo-based command injection.
         
@@ -231,7 +229,7 @@ class CommandInjectionModule:
             try:
                 test_url = self._inject_payload(url, param_name, payload, param_location)
                 
-                response = session.get(test_url, timeout=self.timeout)
+                response = await client.get(test_url, timeout=self.timeout)
                 
                 # Check if marker appears in response
                 if self.marker in response.text and self.marker not in baseline_text:
@@ -245,7 +243,7 @@ class CommandInjectionModule:
                         'recommendation': 'Use parameterized APIs instead of shell commands. Never concatenate user input into commands. Implement strict input validation with allowlists. Use sandboxing or containerization for command execution. Apply principle of least privilege.'
                     }
             
-            except requests.exceptions.RequestException:
+            except (httpx.HTTPError, httpx.TimeoutException):
                 continue
         
         return None

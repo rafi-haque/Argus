@@ -1,11 +1,14 @@
 """Unit tests for new attack modules - CSRF, Path Traversal, Command Injection, CORS, Open Redirect."""
 import pytest
+import asyncio
+import httpx
 from unittest.mock import Mock
 from argus.modules.attack_modules.csrf import CSRFModule
 from argus.modules.attack_modules.path_traversal import PathTraversalModule
 from argus.modules.attack_modules.command_injection import CommandInjectionModule
 from argus.modules.attack_modules.cors import CORSModule
 from argus.modules.attack_modules.open_redirect import OpenRedirectModule
+import httpx
 
 
 class TestCSRFModule:
@@ -55,10 +58,10 @@ class TestCSRFModule:
         mock_response.status_code = 200
         mock_response.text = '<form method="POST"><input type="hidden" name="csrf_token" value="abc123"></form>'
         
-        mock_session = Mock()
-        mock_session.get.return_value = mock_response
+        mock_client = Mock(spec=httpx.AsyncClient)
+        mock_client.get.return_value = mock_response
         
-        findings = module.scan('http://example.com', {}, mock_session)
+        findings = asyncio.run(module.scan('http://example.com', {}, mock_client))
         assert len(findings) == 0
 
 
@@ -169,10 +172,10 @@ class TestCORSModule:
             'Access-Control-Allow-Origin': '*'
         }
         
-        mock_session = Mock()
-        mock_session.get.return_value = mock_response
+        mock_client = Mock(spec=httpx.AsyncClient)
+        mock_client.get.return_value = mock_response
         
-        findings = module.scan('http://example.com', {}, mock_session)
+        findings = asyncio.run(module.scan('http://example.com', {}, mock_client))
         assert len(findings) >= 1
         assert 'Wildcard' in findings[0]['name']
     
@@ -187,10 +190,10 @@ class TestCORSModule:
             'Access-Control-Allow-Credentials': 'true'
         }
         
-        mock_session = Mock()
-        mock_session.get.return_value = mock_response
+        mock_client = Mock(spec=httpx.AsyncClient)
+        mock_client.get.return_value = mock_response
         
-        findings = module.scan('http://example.com', {}, mock_session)
+        findings = asyncio.run(module.scan('http://example.com', {}, mock_client))
         assert len(findings) >= 1
         assert 'Reflection' in findings[0]['name']
 
@@ -242,14 +245,14 @@ class TestOpenRedirectModule:
             'Location': 'https://evil.com'
         }
         
-        mock_session = Mock()
-        mock_session.get.return_value = mock_response
+        mock_client = Mock(spec=httpx.AsyncClient)
+        mock_client.get.return_value = mock_response
         
-        findings = module.scan(
+        findings = asyncio.run(module.scan(
             'http://example.com?redirect=test',
             {'name': 'redirect', 'value': 'test', 'location': 'query'},
-            mock_session
-        )
+            mock_client
+        ))
         
         assert len(findings) >= 1
         assert 'Redirect' in findings[0]['name']

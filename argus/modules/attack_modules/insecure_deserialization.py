@@ -1,10 +1,11 @@
 """Insecure Deserialization detection module."""
-from argus.modules.attack_modules.base import BaseAttackModule
+import httpx
+from .async_base import AsyncBaseAttackModule
 import base64
 import json
 
 
-class InsecureDeserializationModule(BaseAttackModule):
+class InsecureDeserializationModule(AsyncBaseAttackModule):
     """Detects Insecure Deserialization vulnerabilities.
     
     Insecure deserialization occurs when untrusted data is used to abuse
@@ -103,7 +104,7 @@ class InsecureDeserializationModule(BaseAttackModule):
         
         return name_match or value_match
     
-    def scan(self, url: str, parameter: dict, session) -> list:
+    async def scan(self, url: str, parameter: dict, client: httpx.AsyncClient) -> list:
         """Scan for insecure deserialization vulnerabilities.
         
         Args:
@@ -119,14 +120,14 @@ class InsecureDeserializationModule(BaseAttackModule):
         try:
             # Get baseline
             baseline_params = {parameter['name']: parameter['value']}
-            baseline_response = session.get(url, params=baseline_params, timeout=self.timeout)
+            baseline_response = await client.get(url, params=baseline_params, timeout=self.timeout)
             
             # Test different serialization formats
-            findings.extend(self._test_pickle(url, parameter, session, baseline_response))
-            findings.extend(self._test_php_serialization(url, parameter, session, baseline_response))
-            findings.extend(self._test_java_serialization(url, parameter, session, baseline_response))
-            findings.extend(self._test_yaml(url, parameter, session, baseline_response))
-            findings.extend(self._test_xxe(url, parameter, session, baseline_response))
+            findings.extend(await self._test_pickle(url, parameter, client, baseline_response))
+            findings.extend(await self._test_php_serialization(url, parameter, client, baseline_response))
+            findings.extend(await self._test_java_serialization(url, parameter, client, baseline_response))
+            findings.extend(await self._test_yaml(url, parameter, client, baseline_response))
+            findings.extend(await self._test_xxe(url, parameter, client, baseline_response))
         
         except Exception as e:
             if self.config.get('verbose'):
@@ -134,7 +135,7 @@ class InsecureDeserializationModule(BaseAttackModule):
         
         return findings
     
-    def _test_pickle(self, url: str, parameter: dict, session, baseline_response) -> list:
+    async def _test_pickle(self, url: str, parameter: dict, client: httpx.AsyncClient, baseline_response) -> list:
         """Test for Python pickle deserialization.
         
         Args:
@@ -151,7 +152,7 @@ class InsecureDeserializationModule(BaseAttackModule):
         for payload in self.PICKLE_PAYLOADS[:2]:
             try:
                 test_params = {parameter['name']: payload}
-                response = session.get(url, params=test_params, timeout=self.timeout + 6)
+                response = await client.get(url, params=test_params, timeout=self.timeout + 6)
                 
                 # Check for pickle-related errors
                 error_indicators = [
@@ -197,7 +198,7 @@ class InsecureDeserializationModule(BaseAttackModule):
         
         return findings
     
-    def _test_php_serialization(self, url: str, parameter: dict, session, baseline_response) -> list:
+    async def _test_php_serialization(self, url: str, parameter: dict, client: httpx.AsyncClient, baseline_response) -> list:
         """Test for PHP serialization vulnerabilities.
         
         Args:
@@ -214,7 +215,7 @@ class InsecureDeserializationModule(BaseAttackModule):
         for payload in self.PHP_PAYLOADS[:2]:
             try:
                 test_params = {parameter['name']: payload}
-                response = session.get(url, params=test_params, timeout=self.timeout)
+                response = await client.get(url, params=test_params, timeout=self.timeout)
                 
                 # Check for PHP unserialize errors
                 error_indicators = [
@@ -247,7 +248,7 @@ class InsecureDeserializationModule(BaseAttackModule):
         
         return findings
     
-    def _test_java_serialization(self, url: str, parameter: dict, session, baseline_response) -> list:
+    async def _test_java_serialization(self, url: str, parameter: dict, client: httpx.AsyncClient, baseline_response) -> list:
         """Test for Java serialization vulnerabilities.
         
         Args:
@@ -264,7 +265,7 @@ class InsecureDeserializationModule(BaseAttackModule):
         for payload in self.JAVA_SERIAL_MAGIC[:1]:
             try:
                 test_params = {parameter['name']: payload}
-                response = session.get(url, params=test_params, timeout=self.timeout)
+                response = await client.get(url, params=test_params, timeout=self.timeout)
                 
                 # Check for Java deserialization errors
                 error_indicators = [
@@ -296,7 +297,7 @@ class InsecureDeserializationModule(BaseAttackModule):
         
         return findings
     
-    def _test_yaml(self, url: str, parameter: dict, session, baseline_response) -> list:
+    async def _test_yaml(self, url: str, parameter: dict, client: httpx.AsyncClient, baseline_response) -> list:
         """Test for YAML deserialization vulnerabilities.
         
         Args:
@@ -313,7 +314,7 @@ class InsecureDeserializationModule(BaseAttackModule):
         for payload in self.YAML_PAYLOADS[:1]:
             try:
                 test_params = {parameter['name']: payload}
-                response = session.get(url, params=test_params, timeout=self.timeout + 6)
+                response = await client.get(url, params=test_params, timeout=self.timeout + 6)
                 
                 # Check for YAML errors
                 error_indicators = [
@@ -355,7 +356,7 @@ class InsecureDeserializationModule(BaseAttackModule):
         
         return findings
     
-    def _test_xxe(self, url: str, parameter: dict, session, baseline_response) -> list:
+    async def _test_xxe(self, url: str, parameter: dict, client: httpx.AsyncClient, baseline_response) -> list:
         """Test for XML External Entity vulnerabilities.
         
         Args:
@@ -372,7 +373,7 @@ class InsecureDeserializationModule(BaseAttackModule):
         for payload in self.XXE_PAYLOADS[:1]:
             try:
                 test_params = {parameter['name']: payload}
-                response = session.get(url, params=test_params, timeout=self.timeout)
+                response = await client.get(url, params=test_params, timeout=self.timeout)
                 
                 # Check for XXE indicators (file contents or metadata)
                 xxe_indicators = [

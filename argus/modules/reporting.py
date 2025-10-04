@@ -3,6 +3,14 @@ import json
 from datetime import datetime
 from typing import Dict, List, Optional
 
+# Import compliance mapper
+try:
+    from argus.compliance.mappings import ComplianceMapper
+    from argus.compliance.reporting import generate_compliance_cli_report
+    COMPLIANCE_AVAILABLE = True
+except ImportError:
+    COMPLIANCE_AVAILABLE = False
+
 
 class CLIReporter:
     """Console-based reporting with color-coded output."""
@@ -36,6 +44,14 @@ class CLIReporter:
         """
         self.config = config
         self.use_color = True  # Could be made configurable
+        
+        # Initialize compliance mapper if available
+        if COMPLIANCE_AVAILABLE and config.get('enable_compliance', True):
+            self.compliance_mapper = ComplianceMapper(config)
+            self.show_compliance = True
+        else:
+            self.compliance_mapper = None
+            self.show_compliance = False
     
     def _colorize(self, text: str, severity: str) -> str:
         """Add color to text based on severity.
@@ -62,6 +78,10 @@ class CLIReporter:
             site_map: Discovered site map (unused in basic version)
             stats: Scan statistics
         """
+        # Enrich findings with compliance data if enabled
+        if self.show_compliance and self.compliance_mapper and findings:
+            findings = self.compliance_mapper.enrich_findings(findings)
+        
         print("\n" + "="*70)
         print(f"{self.COLORS['Bold']}🔍 ARGUS SCAN RESULTS{self.COLORS['Reset']}")
         print("="*70 + "\n")
@@ -124,6 +144,20 @@ class CLIReporter:
                     evidence = evidence[:197] + "..."
                 print(f"{self.COLORS['Dim']}Evidence:{self.COLORS['Reset']} {evidence}")
                 
+                # Compliance information (if available)
+                if self.show_compliance and 'compliance' in finding:
+                    compliance = finding['compliance']
+                    owasp = compliance.get('owasp', {})
+                    cwe_ids = compliance.get('cwe_ids', [])
+                    
+                    if owasp.get('id') or cwe_ids:
+                        print(f"\n{self.COLORS['Dim']}📋 Compliance:{self.COLORS['Reset']}")
+                        if owasp.get('id'):
+                            print(f"   OWASP: {owasp['id']} - {owasp.get('category', 'N/A')}")
+                        if cwe_ids:
+                            cwe_list = ', '.join([f"CWE-{cwe_id}" for cwe_id in cwe_ids[:3]])
+                            print(f"   CWE: {cwe_list}")
+                
                 # Recommendation (if present)
                 if 'recommendation' in finding and finding['recommendation']:
                     print(f"\n{self.COLORS['Green']}💡 Recommendation:{self.COLORS['Reset']}")
@@ -159,6 +193,10 @@ class CLIReporter:
         if stats.get('errors'):
             print(f"⚠️  Errors: {stats['errors']}")
         print()
+        
+        # Print compliance summary if enabled
+        if self.show_compliance and self.compliance_mapper and findings:
+            generate_compliance_cli_report(findings, self.compliance_mapper)
 
 
 class JSONReporter:
@@ -171,6 +209,14 @@ class JSONReporter:
             config: Scanner configuration
         """
         self.config = config
+        
+        # Initialize compliance mapper if available
+        if COMPLIANCE_AVAILABLE and config.get('enable_compliance', True):
+            self.compliance_mapper = ComplianceMapper(config)
+            self.include_compliance = True
+        else:
+            self.compliance_mapper = None
+            self.include_compliance = False
     
     def generate_report(
         self,
@@ -187,6 +233,10 @@ class JSONReporter:
             stats: Scan statistics
             output_file: Output file path (prints to stdout if None)
         """
+        # Enrich findings with compliance data if enabled
+        if self.include_compliance and self.compliance_mapper and findings:
+            findings = self.compliance_mapper.enrich_findings(findings)
+        
         # Calculate summary statistics
         severity_counts = {'Critical': 0, 'High': 0, 'Medium': 0, 'Low': 0, 'Info': 0}
         for finding in findings:
@@ -211,6 +261,10 @@ class JSONReporter:
             'site_map': site_map,
             'statistics': stats
         }
+        
+        # Add compliance summary if enabled
+        if self.include_compliance and self.compliance_mapper and findings:
+            report['compliance_summary'] = self.compliance_mapper.generate_compliance_summary(findings)
         
         json_output = json.dumps(report, indent=2)
         

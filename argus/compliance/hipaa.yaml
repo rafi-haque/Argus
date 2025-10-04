@@ -1,0 +1,385 @@
+# HIPAA Security Rule Mappings
+#
+# Maps vulnerabilities to HIPAA Security Rule requirements
+# Source: 45 CFR Parts 160, 162, and 164 (Health Insurance Portability and Accountability Act)
+
+sql_injection:
+  controls: ['§164.308(a)(1)(ii)(D)', '§164.312(a)(1)', '§164.308(a)(5)(ii)(C)']
+  control_details:
+    - id: '§164.308(a)(1)(ii)(D)'
+      name: "Information System Activity Review (Required)"
+      description: "Implement procedures to regularly review records of information system activity, such as audit logs, access reports, and security incident tracking reports."
+      category: "Administrative Safeguards"
+      rationale: "SQL injection attacks should be detected through log monitoring."
+    - id: '§164.312(a)(1)'
+      name: "Access Control (Required)"
+      description: "Implement technical policies and procedures for electronic information systems that maintain electronic protected health information to allow access only to those persons or software programs that have been granted access rights."
+      category: "Technical Safeguards"
+      rationale: "SQL injection bypasses access controls to ePHI."
+    - id: '§164.308(a)(5)(ii)(C)'
+      name: "Log-in Monitoring (Addressable)"
+      description: "Procedures for monitoring log-in attempts and reporting discrepancies."
+      category: "Administrative Safeguards"
+      rationale: "SQL injection may be used to bypass authentication."
+
+xss_reflected:
+  controls: ['§164.308(a)(1)(ii)(D)', '§164.312(a)(1)', '§164.312(e)(1)']
+  control_details:
+    - id: '§164.308(a)(1)(ii)(D)'
+      name: "Information System Activity Review (Required)"
+      description: "Review system activity including XSS attack attempts."
+      category: "Administrative Safeguards"
+      rationale: "XSS attacks must be logged and reviewed."
+    - id: '§164.312(a)(1)'
+      name: "Access Control (Required)"
+      description: "XSS can be used to steal session tokens and bypass access controls."
+      category: "Technical Safeguards"
+      rationale: "Session hijacking through XSS compromises access control."
+    - id: '§164.312(e)(1)'
+      name: "Transmission Security (Required)"
+      description: "Implement technical security measures to guard against unauthorized access to ePHI being transmitted."
+      category: "Technical Safeguards"
+      rationale: "XSS can intercept transmitted ePHI."
+
+xss_stored:
+  controls: ['§164.308(a)(1)(ii)(D)', '§164.312(a)(1)', '§164.312(c)(1)']
+  control_details:
+    - id: '§164.308(a)(1)(ii)(D)'
+      name: "Information System Activity Review (Required)"
+      description: "Monitor for stored malicious content."
+      category: "Administrative Safeguards"
+      rationale: "Stored XSS poses persistent threat to ePHI."
+    - id: '§164.312(a)(1)'
+      name: "Access Control (Required)"
+      description: "Stored XSS can compromise access control mechanisms."
+      category: "Technical Safeguards"
+      rationale: "Malicious scripts can steal credentials or session tokens."
+    - id: '§164.312(c)(1)'
+      name: "Integrity (Required)"
+      description: "Implement policies and procedures to protect ePHI from improper alteration or destruction."
+      category: "Technical Safeguards"
+      rationale: "Stored XSS can modify or corrupt ePHI."
+
+xss_dom:
+  controls: ['§164.308(a)(1)(ii)(D)', '§164.312(a)(1)', '§164.312(e)(1)']
+  control_details:
+    - id: '§164.308(a)(1)(ii)(D)'
+      name: "Information System Activity Review (Required)"
+      description: "Review client-side security incidents."
+      category: "Administrative Safeguards"
+      rationale: "DOM XSS attacks should trigger security reviews."
+    - id: '§164.312(a)(1)'
+      name: "Access Control (Required)"
+      description: "DOM XSS can bypass client-side access controls."
+      category: "Technical Safeguards"
+      rationale: "Client-side vulnerabilities compromise ePHI access."
+    - id: '§164.312(e)(1)'
+      name: "Transmission Security (Required)"
+      description: "DOM XSS can intercept ePHI in transit."
+      category: "Technical Safeguards"
+      rationale: "Malicious scripts can capture data before transmission."
+
+broken_access_control:
+  controls: ['§164.308(a)(3)', '§164.308(a)(4)', '§164.312(a)(1)', '§164.312(a)(2)(i)']
+  control_details:
+    - id: '§164.308(a)(3)'
+      name: "Workforce Security (Required)"
+      description: "Implement policies and procedures to ensure that all members of its workforce have appropriate access to ePHI."
+      category: "Administrative Safeguards"
+      rationale: "Broken access control violates workforce security requirements."
+    - id: '§164.308(a)(4)'
+      name: "Information Access Management (Required)"
+      description: "Implement policies and procedures for authorizing access to ePHI."
+      category: "Administrative Safeguards"
+      rationale: "IDOR/BOLA bypasses information access management."
+    - id: '§164.312(a)(1)'
+      name: "Access Control (Required)"
+      description: "Technical access control must prevent unauthorized ePHI access."
+      category: "Technical Safeguards"
+      rationale: "Core access control requirement violated."
+    - id: '§164.312(a)(2)(i)'
+      name: "Unique User Identification (Required)"
+      description: "Assign a unique name and/or number for identifying and tracking user identity."
+      category: "Technical Safeguards"
+      rationale: "Access control flaws can allow user impersonation."
+
+broken_authentication:
+  controls: ['§164.308(a)(5)(ii)(C)', '§164.308(a)(5)(ii)(D)', '§164.312(d)', '§164.312(a)(2)(i)']
+  control_details:
+    - id: '§164.308(a)(5)(ii)(C)'
+      name: "Log-in Monitoring (Addressable)"
+      description: "Procedures for monitoring log-in attempts and reporting discrepancies."
+      category: "Administrative Safeguards"
+      rationale: "Broken authentication allows unauthorized log-ins."
+    - id: '§164.308(a)(5)(ii)(D)'
+      name: "Password Management (Addressable)"
+      description: "Procedures for creating, changing, and safeguarding passwords."
+      category: "Administrative Safeguards"
+      rationale: "Weak authentication undermines password management."
+    - id: '§164.312(d)'
+      name: "Person or Entity Authentication (Required)"
+      description: "Implement procedures to verify that a person or entity seeking access to ePHI is the one claimed."
+      category: "Technical Safeguards"
+      rationale: "Authentication flaws allow identity spoofing."
+    - id: '§164.312(a)(2)(i)'
+      name: "Unique User Identification (Required)"
+      description: "Authentication must tie to unique user identities."
+      category: "Technical Safeguards"
+      rationale: "Broken authentication compromises user tracking."
+
+sensitive_data_exposure:
+  controls: ['§164.312(a)(2)(iv)', '§164.312(e)(2)(i)', '§164.312(e)(2)(ii)', '§164.310(d)(1)']
+  control_details:
+    - id: '§164.312(a)(2)(iv)'
+      name: "Encryption and Decryption (Addressable)"
+      description: "Implement a mechanism to encrypt and decrypt ePHI."
+      category: "Technical Safeguards"
+      rationale: "Sensitive data exposure indicates missing encryption."
+    - id: '§164.312(e)(2)(i)'
+      name: "Integrity Controls (Addressable)"
+      description: "Implement security measures to ensure that electronically transmitted ePHI is not improperly modified."
+      category: "Technical Safeguards"
+      rationale: "Cleartext transmission allows unauthorized viewing and modification."
+    - id: '§164.312(e)(2)(ii)'
+      name: "Encryption (Addressable)"
+      description: "Implement a mechanism to encrypt ePHI whenever deemed appropriate."
+      category: "Technical Safeguards"
+      rationale: "Exposed sensitive data should have been encrypted."
+    - id: '§164.310(d)(1)'
+      name: "Device and Media Controls (Required)"
+      description: "Implement policies and procedures that govern the receipt and removal of hardware and electronic media that contain ePHI."
+      category: "Physical Safeguards"
+      rationale: "Data exposure violates media protection requirements."
+
+xxe:
+  controls: ['§164.308(a)(1)(ii)(D)', '§164.312(a)(1)', '§164.312(c)(1)']
+  control_details:
+    - id: '§164.308(a)(1)(ii)(D)'
+      name: "Information System Activity Review (Required)"
+      description: "Monitor for XXE attack attempts."
+      category: "Administrative Safeguards"
+      rationale: "XXE attacks should be logged and reviewed."
+    - id: '§164.312(a)(1)'
+      name: "Access Control (Required)"
+      description: "XXE can be used to access unauthorized ePHI."
+      category: "Technical Safeguards"
+      rationale: "External entity processing bypasses access controls."
+    - id: '§164.312(c)(1)'
+      name: "Integrity (Required)"
+      description: "XXE can modify or corrupt ePHI."
+      category: "Technical Safeguards"
+      rationale: "Malicious XML can compromise data integrity."
+
+security_misconfiguration:
+  controls: ['§164.308(a)(1)(ii)(B)', '§164.308(a)(7)(ii)(B)', '§164.312(a)(1)', '§164.312(b)']
+  control_details:
+    - id: '§164.308(a)(1)(ii)(B)'
+      name: "Risk Management (Required)"
+      description: "Implement security measures sufficient to reduce risks and vulnerabilities to a reasonable and appropriate level."
+      category: "Administrative Safeguards"
+      rationale: "Misconfigurations represent unmitigated risks."
+    - id: '§164.308(a)(7)(ii)(B)'
+      name: "Protection from Malicious Software (Addressable)"
+      description: "Procedures for guarding against, detecting, and reporting malicious software."
+      category: "Administrative Safeguards"
+      rationale: "Misconfigurations can enable malware."
+    - id: '§164.312(a)(1)'
+      name: "Access Control (Required)"
+      description: "Misconfigured security headers weaken access controls."
+      category: "Technical Safeguards"
+      rationale: "Security configurations enforce access control."
+    - id: '§164.312(b)'
+      name: "Audit Controls (Required)"
+      description: "Implement hardware, software, and/or procedural mechanisms that record and examine activity in information systems that contain or use ePHI."
+      category: "Technical Safeguards"
+      rationale: "Misconfigurations may disable audit logging."
+
+cors_misconfiguration:
+  controls: ['§164.312(a)(1)', '§164.312(e)(1)', '§164.308(a)(4)']
+  control_details:
+    - id: '§164.312(a)(1)'
+      name: "Access Control (Required)"
+      description: "Permissive CORS allows unauthorized cross-origin access to ePHI."
+      category: "Technical Safeguards"
+      rationale: "CORS controls are part of access control implementation."
+    - id: '§164.312(e)(1)'
+      name: "Transmission Security (Required)"
+      description: "CORS misconfiguration can expose ePHI during transmission."
+      category: "Technical Safeguards"
+      rationale: "Improper origin validation compromises transmission security."
+    - id: '§164.308(a)(4)'
+      name: "Information Access Management (Required)"
+      description: "CORS determines which origins can access ePHI."
+      category: "Administrative Safeguards"
+      rationale: "Access policies must include origin restrictions."
+
+insecure_deserialization:
+  controls: ['§164.308(a)(1)(ii)(D)', '§164.312(a)(1)', '§164.312(c)(1)']
+  control_details:
+    - id: '§164.308(a)(1)(ii)(D)'
+      name: "Information System Activity Review (Required)"
+      description: "Monitor for deserialization attacks."
+      category: "Administrative Safeguards"
+      rationale: "Deserialization exploits should be logged."
+    - id: '§164.312(a)(1)'
+      name: "Access Control (Required)"
+      description: "Deserialization can lead to remote code execution and ePHI access."
+      category: "Technical Safeguards"
+      rationale: "RCE completely bypasses access controls."
+    - id: '§164.312(c)(1)'
+      name: "Integrity (Required)"
+      description: "Malicious deserialization can corrupt ePHI."
+      category: "Technical Safeguards"
+      rationale: "Arbitrary code execution threatens data integrity."
+
+ssrf:
+  controls: ['§164.308(a)(1)(ii)(D)', '§164.312(a)(1)', '§164.310(a)(1)']
+  control_details:
+    - id: '§164.308(a)(1)(ii)(D)'
+      name: "Information System Activity Review (Required)"
+      description: "Monitor for SSRF attack attempts."
+      category: "Administrative Safeguards"
+      rationale: "Unauthorized internal requests should be detected."
+    - id: '§164.312(a)(1)'
+      name: "Access Control (Required)"
+      description: "SSRF can access internal ePHI systems."
+      category: "Technical Safeguards"
+      rationale: "Network-level access control bypass."
+    - id: '§164.310(a)(1)'
+      name: "Facility Access Controls (Required)"
+      description: "Implement policies and procedures to limit physical access to electronic information systems and the facility or facilities in which they are housed."
+      category: "Physical Safeguards"
+      rationale: "SSRF can reach physically isolated systems."
+
+path_traversal:
+  controls: ['§164.308(a)(3)', '§164.308(a)(4)', '§164.312(a)(1)']
+  control_details:
+    - id: '§164.308(a)(3)'
+      name: "Workforce Security (Required)"
+      description: "Path traversal allows unauthorized file access beyond worker permissions."
+      category: "Administrative Safeguards"
+      rationale: "File access must respect workforce authorization."
+    - id: '§164.308(a)(4)'
+      name: "Information Access Management (Required)"
+      description: "Access to files containing ePHI must be controlled."
+      category: "Administrative Safeguards"
+      rationale: "Directory traversal bypasses access management."
+    - id: '§164.312(a)(1)'
+      name: "Access Control (Required)"
+      description: "File system access controls are bypassed."
+      category: "Technical Safeguards"
+      rationale: "Path traversal is an access control failure."
+
+command_injection:
+  controls: ['§164.308(a)(1)(ii)(D)', '§164.312(a)(1)', '§164.312(b)']
+  control_details:
+    - id: '§164.308(a)(1)(ii)(D)'
+      name: "Information System Activity Review (Required)"
+      description: "Command injection attacks should be logged and reviewed."
+      category: "Administrative Safeguards"
+      rationale: "Unauthorized command execution is a security incident."
+    - id: '§164.312(a)(1)'
+      name: "Access Control (Required)"
+      description: "OS command injection provides complete system access."
+      category: "Technical Safeguards"
+      rationale: "Command execution bypasses all access controls."
+    - id: '§164.312(b)'
+      name: "Audit Controls (Required)"
+      description: "Command injection can disable or manipulate audit logs."
+      category: "Technical Safeguards"
+      rationale: "System-level access threatens audit integrity."
+
+ldap_injection:
+  controls: ['§164.308(a)(1)(ii)(D)', '§164.312(a)(1)', '§164.312(d)']
+  control_details:
+    - id: '§164.308(a)(1)(ii)(D)'
+      name: "Information System Activity Review (Required)"
+      description: "Monitor LDAP query manipulation attempts."
+      category: "Administrative Safeguards"
+      rationale: "LDAP injection attacks should be detected."
+    - id: '§164.312(a)(1)'
+      name: "Access Control (Required)"
+      description: "LDAP injection can bypass directory-based access controls."
+      category: "Technical Safeguards"
+      rationale: "LDAP is often used for authentication and authorization."
+    - id: '§164.312(d)'
+      name: "Person or Entity Authentication (Required)"
+      description: "LDAP injection can bypass authentication."
+      category: "Technical Safeguards"
+      rationale: "Directory services manage user authentication."
+
+unrestricted_file_upload:
+  controls: ['§164.308(a)(1)(ii)(D)', '§164.312(a)(1)', '§164.310(d)(1)']
+  control_details:
+    - id: '§164.308(a)(1)(ii)(D)'
+      name: "Information System Activity Review (Required)"
+      description: "Monitor for malicious file uploads."
+      category: "Administrative Safeguards"
+      rationale: "Suspicious uploads should trigger security reviews."
+    - id: '§164.312(a)(1)'
+      name: "Access Control (Required)"
+      description: "Malicious uploads can lead to code execution and ePHI access."
+      category: "Technical Safeguards"
+      rationale: "File upload is a form of data input requiring controls."
+    - id: '§164.310(d)(1)'
+      name: "Device and Media Controls (Required)"
+      description: "Govern receipt of electronic media that may contain ePHI."
+      category: "Physical Safeguards"
+      rationale: "Uploaded files are electronic media."
+
+csrf:
+  controls: ['§164.308(a)(1)(ii)(D)', '§164.312(a)(1)', '§164.312(c)(1)']
+  control_details:
+    - id: '§164.308(a)(1)(ii)(D)'
+      name: "Information System Activity Review (Required)"
+      description: "Monitor for unexpected state-changing requests."
+      category: "Administrative Safeguards"
+      rationale: "CSRF attacks may be detected through activity patterns."
+    - id: '§164.312(a)(1)'
+      name: "Access Control (Required)"
+      description: "CSRF bypasses user intent verification for access control."
+      category: "Technical Safeguards"
+      rationale: "Forged requests can perform unauthorized actions."
+    - id: '§164.312(c)(1)'
+      name: "Integrity (Required)"
+      description: "CSRF can modify ePHI without authorization."
+      category: "Technical Safeguards"
+      rationale: "Unwanted state changes threaten data integrity."
+
+mass_assignment:
+  controls: ['§164.308(a)(3)', '§164.308(a)(4)', '§164.312(a)(1)']
+  control_details:
+    - id: '§164.308(a)(3)'
+      name: "Workforce Security (Required)"
+      description: "Mass assignment can escalate worker privileges inappropriately."
+      category: "Administrative Safeguards"
+      rationale: "Property modification must respect workforce roles."
+    - id: '§164.308(a)(4)'
+      name: "Information Access Management (Required)"
+      description: "Mass assignment bypasses intended access restrictions."
+      category: "Administrative Safeguards"
+      rationale: "Object properties should have access controls."
+    - id: '§164.312(a)(1)'
+      name: "Access Control (Required)"
+      description: "Unrestricted property binding violates access control."
+      category: "Technical Safeguards"
+      rationale: "Property access is part of access control."
+
+open_redirect:
+  controls: ['§164.308(a)(1)(ii)(D)', '§164.312(a)(1)', '§164.308(a)(5)(ii)(B)']
+  control_details:
+    - id: '§164.308(a)(1)(ii)(D)'
+      name: "Information System Activity Review (Required)"
+      description: "Monitor for phishing attempts using open redirects."
+      category: "Administrative Safeguards"
+      rationale: "Redirect abuse should be logged."
+    - id: '§164.312(a)(1)'
+      name: "Access Control (Required)"
+      description: "Open redirects can be used to steal credentials."
+      category: "Technical Safeguards"
+      rationale: "Phishing undermines authentication."
+    - id: '§164.308(a)(5)(ii)(B)'
+      name: "Protection from Malicious Software (Addressable)"
+      description: "Open redirects can redirect users to malware."
+      category: "Administrative Safeguards"
+      rationale: "Phishing sites often serve malware."

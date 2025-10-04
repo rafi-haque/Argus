@@ -1,9 +1,10 @@
 """API-specific vulnerabilities detection module."""
-from argus.modules.attack_modules.base import BaseAttackModule
+import httpx
+from .async_base import AsyncBaseAttackModule
 import json
 
 
-class APIVulnerabilitiesModule(BaseAttackModule):
+class APIVulnerabilitiesModule(AsyncBaseAttackModule):
     """Detects API-specific vulnerabilities.
     
     Focuses on OWASP API Security Top 10:
@@ -75,7 +76,7 @@ class APIVulnerabilitiesModule(BaseAttackModule):
         
         return False
     
-    def scan(self, url: str, parameter: dict, session) -> list:
+    async def scan(self, url: str, parameter: dict, client: httpx.AsyncClient) -> list:
         """Scan for API vulnerabilities.
         
         Args:
@@ -105,7 +106,7 @@ class APIVulnerabilitiesModule(BaseAttackModule):
         
         return findings
     
-    def _test_bola(self, url: str, parameter: dict, session) -> list:
+    async def _test_bola(self, url: str, parameter: dict, client: httpx.AsyncClient) -> list:
         """Test for Broken Object Level Authorization (BOLA/IDOR).
         
         Args:
@@ -121,7 +122,7 @@ class APIVulnerabilitiesModule(BaseAttackModule):
         try:
             # Get response with original ID
             original_params = {parameter['name']: parameter['value']}
-            original_response = session.get(url, params=original_params, timeout=self.timeout)
+            original_response = await client.get(url, params=original_params, timeout=self.timeout)
             
             if original_response.status_code != 200:
                 return findings  # Original request failed, can't test
@@ -157,7 +158,7 @@ class APIVulnerabilitiesModule(BaseAttackModule):
             for test_id in test_ids[:5]:  # Limit tests
                 try:
                     test_params = {parameter['name']: test_id}
-                    response = session.get(url, params=test_params, timeout=self.timeout)
+                    response = await client.get(url, params=test_params, timeout=self.timeout)
                     
                     # Check if we got a successful response with different data
                     if response.status_code == 200:
@@ -186,7 +187,7 @@ class APIVulnerabilitiesModule(BaseAttackModule):
         
         return findings
     
-    def _test_mass_assignment(self, url: str, parameter: dict, session) -> list:
+    async def _test_mass_assignment(self, url: str, parameter: dict, client: httpx.AsyncClient) -> list:
         """Test for Mass Assignment vulnerabilities.
         
         Args:
@@ -209,7 +210,7 @@ class APIVulnerabilitiesModule(BaseAttackModule):
                 try:
                     # Test with JSON
                     test_data = {field: True, 'test': 'value'}
-                    response = session.post(
+                    response = await client.post(
                         url,
                         json=test_data,
                         timeout=self.timeout
@@ -259,7 +260,7 @@ class APIVulnerabilitiesModule(BaseAttackModule):
         
         return findings
     
-    def _test_excessive_data_exposure(self, url: str, parameter: dict, session) -> list:
+    async def _test_excessive_data_exposure(self, url: str, parameter: dict, client: httpx.AsyncClient) -> list:
         """Test for Excessive Data Exposure.
         
         Args:
@@ -273,7 +274,7 @@ class APIVulnerabilitiesModule(BaseAttackModule):
         findings = []
         
         try:
-            response = session.get(url, timeout=self.timeout)
+            response = await client.get(url, timeout=self.timeout)
             
             if response.status_code != 200:
                 return findings

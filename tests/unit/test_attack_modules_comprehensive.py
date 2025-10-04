@@ -4,6 +4,8 @@ from unittest.mock import Mock, patch
 from argus.modules.attack_modules.insecure_headers import InsecureHeadersModule
 from argus.modules.attack_modules.sqli import SQLiModule
 from argus.modules.attack_modules.xss import XSSModule
+import asyncio
+import httpx
 
 
 class TestInsecureHeadersComprehensive:
@@ -26,11 +28,10 @@ class TestInsecureHeadersComprehensive:
             'X-XSS-Protection': '1; mode=block'
         }
         
-        mock_session = Mock()
-        mock_session.get.return_value = mock_response
+        mock_client = Mock(spec=httpx.AsyncClient)
+        mock_client.get.return_value = mock_response
         
-        findings = module.scan('http://example.com', {}, mock_session)
-        
+        findings = asyncio.run(module.scan('http://example.com', {}, mock_client))
         assert len(findings) == 0
     
     def test_scan_with_missing_headers(self):
@@ -44,11 +45,10 @@ class TestInsecureHeadersComprehensive:
             'X-Frame-Options': 'SAMEORIGIN'
         }
         
-        mock_session = Mock()
-        mock_session.get.return_value = mock_response
+        mock_client = Mock(spec=httpx.AsyncClient)
+        mock_client.get.return_value = mock_response
         
-        findings = module.scan('http://example.com', {}, mock_session)
-        
+        findings = asyncio.run(module.scan('http://example.com', {}, mock_client))
         assert len(findings) == 6  # 7 total - 1 present
     
     def test_scan_handles_connection_error(self):
@@ -56,11 +56,10 @@ class TestInsecureHeadersComprehensive:
         config = {}
         module = InsecureHeadersModule(config)
         
-        import requests
-        mock_session = Mock()
-        mock_session.get.side_effect = requests.exceptions.RequestException("Connection refused")
+        mock_client = Mock(spec=httpx.AsyncClient)
+        mock_client.get.side_effect = httpx.HTTPError("Connection refused")
         
-        findings = module.scan('http://example.com', {}, mock_session)
+        findings = asyncio.run(module.scan('http://example.com', {}, mock_client))
         
         assert len(findings) == 0
 
@@ -98,11 +97,10 @@ class TestSQLiComprehensive:
         false_response.content = b"Product 1"
         false_response.elapsed.total_seconds.return_value = 0.1
         
-        mock_session = Mock()
-        mock_session.get.side_effect = [baseline_response, true_response, false_response] * 10
+        mock_client = Mock(spec=httpx.AsyncClient)
+        mock_client.get.side_effect = [baseline_response, true_response, false_response] * 10
         
-        findings = module.scan('http://example.com?id=1', parameter, mock_session)
-        
+        findings = asyncio.run(module.scan('http://example.com?id=1', parameter, mock_client))
         assert len(findings) == 1
         assert 'Boolean' in findings[0]['name']
         assert findings[0]['severity'] == 'High'
@@ -145,11 +143,10 @@ class TestXSSComprehensive:
         mock_response.headers = {}
         mock_response.content = response_text.encode()
         
-        mock_session = Mock()
-        mock_session.get.return_value = mock_response
+        mock_client = Mock(spec=httpx.AsyncClient)
+        mock_client.get.return_value = mock_response
         
-        findings = module.scan('http://example.com?q=test', parameter, mock_session)
-        
+        findings = asyncio.run(module.scan('http://example.com?q=test', parameter, mock_client))
         reflected = [f for f in findings if 'Reflected' in f['name']]
         assert len(reflected) >= 1
         assert reflected[0]['severity'] == 'High'
@@ -167,11 +164,10 @@ class TestXSSComprehensive:
         mock_response.headers = {}
         mock_response.content = b'<html><div>Search for: &lt;script&gt;alert(1)&lt;/script&gt;</div></html>'
         
-        mock_session = Mock()
-        mock_session.get.return_value = mock_response
+        mock_client = Mock(spec=httpx.AsyncClient)
+        mock_client.get.return_value = mock_response
         
-        findings = module.scan('http://example.com?q=test', parameter, mock_session)
-        
+        findings = asyncio.run(module.scan('http://example.com?q=test', parameter, mock_client))
         reflected = [f for f in findings if 'Reflected' in f['name']]
         assert len(reflected) == 0
     

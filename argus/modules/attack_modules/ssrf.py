@@ -1,12 +1,13 @@
 """Server-Side Request Forgery (SSRF) detection module."""
-from argus.modules.attack_modules.base import BaseAttackModule
+import httpx
+from .async_base import AsyncBaseAttackModule
 from argus.modules.oast import OASTClient, OASTPayloadGenerator
 import time
 import socket
 from typing import Optional
 
 
-class SSRFModule(BaseAttackModule):
+class SSRFModule(AsyncBaseAttackModule):
     """Detects Server-Side Request Forgery vulnerabilities.
     
     SSRF allows an attacker to make the server perform HTTP requests
@@ -87,13 +88,13 @@ class SSRFModule(BaseAttackModule):
         
         return any(keyword in param_name_lower for keyword in ssrf_keywords)
     
-    def scan(self, url: str, parameter: dict, session) -> list:
+    async def scan(self, url: str, parameter: dict, client: httpx.AsyncClient) -> list:
         """Scan for SSRF vulnerabilities.
         
         Args:
             url: Target URL
             parameter: Parameter to test
-            session: Requests session
+            client: HTTP client
         
         Returns:
             list: Findings
@@ -118,18 +119,18 @@ class SSRFModule(BaseAttackModule):
             
             # Get baseline response
             baseline_params = {parameter['name']: parameter['value']}
-            baseline_response = session.get(
+            baseline_response = await client.get(
                 url, 
                 params=baseline_params, 
                 timeout=self.timeout,
-                allow_redirects=False
+                follow_redirects=False
             )
             baseline_time = 0
             
             # Test OAST payloads first (most reliable for blind SSRF)
             if oast_client and oast_payloads:
-                oast_results = self._test_oast_ssrf(
-                    url, parameter, session, oast_client, oast_payloads
+                oast_results = await self._test_oast_ssrf(
+                    url, parameter, client, oast_client, oast_payloads
                 )
                 findings.extend(oast_results)
                 
@@ -142,11 +143,11 @@ class SSRFModule(BaseAttackModule):
                     test_params = {parameter['name']: payload}
                     
                     start_time = time.time()
-                    response = session.get(
+                    response = await client.get(
                         url,
                         params=test_params,
                         timeout=self.timeout,
-                        allow_redirects=False
+                        follow_redirects=False
                     )
                     elapsed_time = time.time() - start_time
                     
@@ -188,7 +189,7 @@ class SSRFModule(BaseAttackModule):
             
             # Test cloud metadata endpoints
             if not findings:  # Only if SSRF not already detected
-                findings.extend(self._test_cloud_metadata(url, parameter, session))
+                findings.extend(await self._test_cloud_metadata(url, parameter, client))
             
             # Cleanup OAST
             if oast_client:
@@ -262,14 +263,14 @@ class SSRFModule(BaseAttackModule):
         
         return ' | '.join(indicators) if indicators else ''
     
-    def _test_oast_ssrf(self, url: str, parameter: dict, session, 
+    async def _test_oast_ssrf(self, url: str, parameter: dict, client: httpx.AsyncClient, 
                         oast_client: OASTClient, oast_payloads: OASTPayloadGenerator) -> list:
         """Test for blind SSRF using OAST callbacks.
         
         Args:
             url: Target URL
             parameter: Parameter to test
-            session: Requests session
+            client: HTTP client
             oast_client: OAST client instance
             oast_payloads: OAST payload generator
         
@@ -286,11 +287,11 @@ class SSRFModule(BaseAttackModule):
             for payload, callback_id in payloads:
                 try:
                     test_params = {parameter['name']: payload}
-                    response = session.get(
+                    response = await client.get(
                         url,
                         params=test_params,
                         timeout=self.timeout,
-                        allow_redirects=False
+                        follow_redirects=False
                     )
                     callback_ids.append(callback_id)
                 except:
@@ -317,7 +318,7 @@ class SSRFModule(BaseAttackModule):
         
         return findings
     
-    def _test_cloud_metadata(self, url: str, parameter: dict, session) -> list:
+    async def _test_cloud_metadata(self, url: str, parameter: dict, client: httpx.AsyncClient) -> list:
         """Test access to cloud metadata services.
         
         Args:
@@ -333,11 +334,11 @@ class SSRFModule(BaseAttackModule):
         for metadata_url in self.CLOUD_METADATA[:2]:  # Test first 2 for efficiency
             try:
                 test_params = {parameter['name']: metadata_url}
-                response = session.get(
+                response = await client.get(
                     url,
                     params=test_params,
                     timeout=self.timeout,
-                    allow_redirects=False
+                    follow_redirects=False
                 )
                 
                 # Check for cloud metadata indicators

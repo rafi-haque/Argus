@@ -1,5 +1,5 @@
 """Path Traversal / Directory Traversal detection module."""
-import requests
+import httpx
 from typing import Dict, List
 from urllib.parse import urljoin, urlparse
 
@@ -91,7 +91,7 @@ class PathTraversalModule:
         
         return any(indicator in param_name for indicator in file_indicators)
     
-    def scan(self, url: str, parameter: dict, session: requests.Session) -> List[Dict]:
+    async def scan(self, url: str, parameter: dict, client: httpx.AsyncClient) -> List[Dict]:
         """Test for path traversal vulnerabilities.
         
         Args:
@@ -112,7 +112,7 @@ class PathTraversalModule:
             baseline_response = session.get(url, timeout=self.timeout)
             baseline_text = baseline_response.text
             baseline_size = len(baseline_response.content)
-        except requests.exceptions.RequestException:
+        except (httpx.HTTPError, httpx.TimeoutException):
             return findings
         
         # Test each payload
@@ -122,7 +122,7 @@ class PathTraversalModule:
                 test_url = self._inject_payload(url, param_name, payload, param_location)
                 
                 # Make request
-                response = session.get(test_url, timeout=self.timeout)
+                response = await client.get(test_url, timeout=self.timeout)
                 
                 # Check for successful traversal
                 is_vulnerable, evidence = self._check_traversal_success(
@@ -143,7 +143,7 @@ class PathTraversalModule:
                     findings.append(finding)
                     break  # Found vulnerability, no need to test more
             
-            except requests.exceptions.RequestException:
+            except (httpx.HTTPError, httpx.TimeoutException):
                 continue
         
         return findings

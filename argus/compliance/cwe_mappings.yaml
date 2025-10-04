@@ -1,0 +1,228 @@
+# CWE (Common Weakness Enumeration) Mappings
+#
+# Maps vulnerability types to CWE IDs
+# Source: https://cwe.mitre.org/
+
+sql_injection:
+  cwe_ids: [89]
+  primary_cwe: 89
+  cwe_details:
+    - id: 89
+      name: "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')"
+      description: "The software constructs all or part of an SQL command using externally-influenced input from an upstream component, but it does not neutralize or incorrectly neutralizes special elements that could modify the intended SQL command when it is sent to a downstream component."
+
+xss_reflected:
+  cwe_ids: [79]
+  primary_cwe: 79
+  cwe_details:
+    - id: 79
+      name: "Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"
+      description: "The software does not neutralize or incorrectly neutralizes user-controllable input before it is placed in output that is used as a web page that is served to other users."
+
+xss_stored:
+  cwe_ids: [79, 80]
+  primary_cwe: 79
+  cwe_details:
+    - id: 79
+      name: "Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"
+      description: "The software does not neutralize or incorrectly neutralizes user-controllable input before it is placed in output that is used as a web page that is served to other users."
+    - id: 80
+      name: "Improper Neutralization of Script-Related HTML Tags in a Web Page (Basic XSS)"
+      description: "The software receives input from an upstream component, but it does not neutralize or incorrectly neutralizes special characters such as <, >, and & that could be interpreted as web-scripting elements when they are sent to a downstream component that processes web pages."
+
+xss_dom:
+  cwe_ids: [79, 85]
+  primary_cwe: 79
+  cwe_details:
+    - id: 79
+      name: "Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"
+      description: "The software does not neutralize or incorrectly neutralizes user-controllable input before it is placed in output that is used as a web page that is served to other users."
+    - id: 85
+      name: "Doubled Character XSS Manipulations"
+      description: "The web application does not filter user-controlled input for executable script disguised using doubling of the involved characters."
+
+broken_access_control:
+  cwe_ids: [639, 284, 285, 862, 863]
+  primary_cwe: 639
+  cwe_details:
+    - id: 639
+      name: "Authorization Bypass Through User-Controlled Key"
+      description: "The system's authorization functionality does not prevent one user from gaining access to another user's data or record by modifying the key value identifying the data."
+    - id: 284
+      name: "Improper Access Control"
+      description: "The software does not restrict or incorrectly restricts access to a resource from an unauthorized actor."
+    - id: 285
+      name: "Improper Authorization"
+      description: "The software does not perform or incorrectly performs an authorization check when an actor attempts to access a resource or perform an action."
+    - id: 862
+      name: "Missing Authorization"
+      description: "The software does not perform an authorization check when an actor attempts to access a resource or perform an action."
+    - id: 863
+      name: "Incorrect Authorization"
+      description: "The software performs an authorization check when an actor attempts to access a resource or perform an action, but it does not correctly perform the check."
+
+broken_authentication:
+  cwe_ids: [287, 306, 307, 798, 916]
+  primary_cwe: 287
+  cwe_details:
+    - id: 287
+      name: "Improper Authentication"
+      description: "When an actor claims to have a given identity, the software does not prove or insufficiently proves that the claim is correct."
+    - id: 306
+      name: "Missing Authentication for Critical Function"
+      description: "The software does not perform any authentication for functionality that requires a provable user identity or consumes a significant amount of resources."
+    - id: 307
+      name: "Improper Restriction of Excessive Authentication Attempts"
+      description: "The software does not implement sufficient measures to prevent multiple failed authentication attempts within in a short time frame."
+    - id: 798
+      name: "Use of Hard-coded Credentials"
+      description: "The software contains hard-coded credentials, such as a password or cryptographic key, which it uses for its own inbound authentication, outbound communication to external components, or encryption of internal data."
+    - id: 916
+      name: "Use of Password Hash With Insufficient Computational Effort"
+      description: "The software generates a hash for a password, but it uses a scheme that does not provide a sufficient level of computational effort that would make password cracking attacks infeasible or expensive."
+
+sensitive_data_exposure:
+  cwe_ids: [311, 312, 319, 326, 327, 359]
+  primary_cwe: 311
+  cwe_details:
+    - id: 311
+      name: "Missing Encryption of Sensitive Data"
+      description: "The software does not encrypt sensitive or critical information before storage or transmission."
+    - id: 312
+      name: "Cleartext Storage of Sensitive Information"
+      description: "The application stores sensitive information in cleartext within a resource that might be accessible to another control sphere."
+    - id: 319
+      name: "Cleartext Transmission of Sensitive Information"
+      description: "The software transmits sensitive or security-critical data in cleartext in a communication channel that can be sniffed by unauthorized actors."
+    - id: 326
+      name: "Inadequate Encryption Strength"
+      description: "The software stores or transmits sensitive data using an encryption scheme that is theoretically sound, but is not strong enough for the level of protection required."
+    - id: 327
+      name: "Use of a Broken or Risky Cryptographic Algorithm"
+      description: "The use of a broken or risky cryptographic algorithm is an unnecessary risk that may result in the exposure of sensitive information."
+    - id: 359
+      name: "Exposure of Private Personal Information to an Unauthorized Actor"
+      description: "The software does not properly prevent a person's private, personal information from being accessed by actors who either are not explicitly authorized to access the information or do not have the implicit consent of the person about whom the information is collected."
+
+xxe:
+  cwe_ids: [611, 827]
+  primary_cwe: 611
+  cwe_details:
+    - id: 611
+      name: "Improper Restriction of XML External Entity Reference"
+      description: "The software processes an XML document that can contain XML entities with URIs that resolve to documents outside of the intended sphere of control, causing the product to embed incorrect documents into its output."
+    - id: 827
+      name: "Improper Control of Document Type Definition"
+      description: "The software does not restrict a reference to a Document Type Definition (DTD) to the intended control sphere. This might allow attackers to reference arbitrary DTDs, possibly causing the software to process malicious content."
+
+security_misconfiguration:
+  cwe_ids: [16, 2, 209, 732]
+  primary_cwe: 16
+  cwe_details:
+    - id: 16
+      name: "Configuration"
+      description: "Weaknesses in this category are typically introduced during the configuration of the software."
+    - id: 2
+      name: "7PK - Environment"
+      description: "This category represents one of the phyla in the Seven Pernicious Kingdoms vulnerability classification. It includes weaknesses that are typically introduced during unexpected environmental conditions."
+    - id: 209
+      name: "Generation of Error Message Containing Sensitive Information"
+      description: "The software generates an error message that includes sensitive information about its environment, users, or associated data."
+    - id: 732
+      name: "Incorrect Permission Assignment for Critical Resource"
+      description: "The product specifies permissions for a security-critical resource in a way that allows that resource to be read or modified by unintended actors."
+
+cors_misconfiguration:
+  cwe_ids: [942, 346]
+  primary_cwe: 942
+  cwe_details:
+    - id: 942
+      name: "Permissive Cross-domain Policy with Untrusted Domains"
+      description: "The software uses a cross-domain policy file that includes domains that should not be trusted."
+    - id: 346
+      name: "Origin Validation Error"
+      description: "The software does not properly verify that the source of data or communication is valid."
+
+insecure_deserialization:
+  cwe_ids: [502]
+  primary_cwe: 502
+  cwe_details:
+    - id: 502
+      name: "Deserialization of Untrusted Data"
+      description: "The application deserializes untrusted data without sufficiently verifying that the resulting data will be valid."
+
+ssrf:
+  cwe_ids: [918]
+  primary_cwe: 918
+  cwe_details:
+    - id: 918
+      name: "Server-Side Request Forgery (SSRF)"
+      description: "The web server receives a URL or similar request from an upstream component and retrieves the contents of this URL, but it does not sufficiently ensure that the request is being sent to the expected destination."
+
+path_traversal:
+  cwe_ids: [22, 73, 98]
+  primary_cwe: 22
+  cwe_details:
+    - id: 22
+      name: "Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')"
+      description: "The software uses external input to construct a pathname that is intended to identify a file or directory that is located underneath a restricted parent directory, but the software does not properly neutralize special elements within the pathname that can cause the pathname to resolve to a location that is outside of the restricted directory."
+    - id: 73
+      name: "External Control of File Name or Path"
+      description: "The software allows user input to control or influence paths or file names that are used in filesystem operations."
+    - id: 98
+      name: "Improper Control of Filename for Include/Require Statement in PHP Program ('PHP Remote File Inclusion')"
+      description: "The PHP application receives input from an upstream component, but it does not restrict or incorrectly restricts the input before its usage in require, include, or similar functions."
+
+command_injection:
+  cwe_ids: [78, 77]
+  primary_cwe: 78
+  cwe_details:
+    - id: 78
+      name: "Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')"
+      description: "The software constructs all or part of an OS command using externally-influenced input from an upstream component, but it does not neutralize or incorrectly neutralizes special elements that could modify the intended OS command when it is sent to a downstream component."
+    - id: 77
+      name: "Improper Neutralization of Special Elements used in a Command ('Command Injection')"
+      description: "The software constructs all or part of a command using externally-influenced input from an upstream component, but it does not neutralize or incorrectly neutralizes special elements that could modify the intended command when it is sent to a downstream component."
+
+ldap_injection:
+  cwe_ids: [90]
+  primary_cwe: 90
+  cwe_details:
+    - id: 90
+      name: "Improper Neutralization of Special Elements used in an LDAP Query ('LDAP Injection')"
+      description: "The software constructs all or part of an LDAP query using externally-influenced input from an upstream component, but it does not neutralize or incorrectly neutralizes special elements that could modify the intended LDAP query when it is sent to a downstream component."
+
+unrestricted_file_upload:
+  cwe_ids: [434, 435]
+  primary_cwe: 434
+  cwe_details:
+    - id: 434
+      name: "Unrestricted Upload of File with Dangerous Type"
+      description: "The software allows the attacker to upload or transfer files of dangerous types that can be automatically processed within the product's environment."
+    - id: 435
+      name: "Improper Interaction Between Multiple Correctly-Behaving Entities"
+      description: "An interaction error occurs when two entities have correct behavior when running independently, but when they are integrated, they produce incorrect behaviors."
+
+csrf:
+  cwe_ids: [352]
+  primary_cwe: 352
+  cwe_details:
+    - id: 352
+      name: "Cross-Site Request Forgery (CSRF)"
+      description: "The web application does not, or can not, sufficiently verify whether a well-formed, valid, consistent request was intentionally provided by the user who submitted the request."
+
+mass_assignment:
+  cwe_ids: [915]
+  primary_cwe: 915
+  cwe_details:
+    - id: 915
+      name: "Improperly Controlled Modification of Dynamically-Determined Object Attributes"
+      description: "The software receives input from an upstream component that specifies multiple attributes, properties, or fields that are to be initialized or updated in an object, but it does not properly control which attributes can be modified."
+
+open_redirect:
+  cwe_ids: [601]
+  primary_cwe: 601
+  cwe_details:
+    - id: 601
+      name: "URL Redirection to Untrusted Site ('Open Redirect')"
+      description: "A web application accepts a user-controlled input that specifies a link to an external site, and uses that link in a Redirect. This simplifies phishing attacks."

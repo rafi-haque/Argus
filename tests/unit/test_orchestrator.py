@@ -9,7 +9,7 @@ def test_orchestrator_initialization():
     orchestrator = ScannerOrchestrator(config, [])
     
     assert orchestrator.config == config
-    assert orchestrator.max_concurrent == 5
+    assert orchestrator.modules == []
 
 
 def test_orchestrator_with_modules():

@@ -1,0 +1,272 @@
+# PCI-DSS v4.0 Requirement Mappings
+#
+# Maps vulnerabilities to PCI Data Security Standard v4.0 requirements
+# Source: https://www.pcisecuritystandards.org/
+
+sql_injection:
+  requirements: ['6.2.4', '6.3.2', '11.6.1']
+  requirement_details:
+    - id: '6.2.4'
+      name: "Bespoke and custom software are developed securely"
+      description: "All payment page scripts that are loaded and executed in the consumer's browser are managed as follows: Secure coding techniques are used to prevent common coding vulnerabilities in payment page scripts."
+    - id: '6.3.2'
+      name: "An inventory of bespoke and custom software, and third-party software components incorporated into bespoke and custom software is maintained to facilitate vulnerability and patch management"
+      description: "Injection flaws (particularly SQL injection) allow attackers to relay commands to database or operating system, often leading to complete system compromise."
+    - id: '11.6.1'
+      name: "A change- and tamper-detection mechanism is deployed"
+      description: "Monitor for unauthorized modification of HTTP headers and the contents of payment pages as received by the consumer browser."
+
+xss_reflected:
+  requirements: ['6.2.4', '6.3.2', '11.6.1']
+  requirement_details:
+    - id: '6.2.4'
+      name: "Bespoke and custom software are developed securely"
+      description: "Secure coding techniques prevent common vulnerabilities including XSS."
+    - id: '6.3.2'
+      name: "Software vulnerability and patch management"
+      description: "XSS can be used to steal cardholder data or session tokens."
+    - id: '11.6.1'
+      name: "Change detection"
+      description: "XSS can modify payment page behavior."
+
+xss_stored:
+  requirements: ['6.2.4', '6.3.2', '11.6.1']
+  requirement_details:
+    - id: '6.2.4'
+      name: "Bespoke and custom software are developed securely"
+      description: "Secure coding techniques prevent stored XSS vulnerabilities."
+    - id: '6.3.2'
+      name: "Software vulnerability and patch management"
+      description: "Stored XSS poses persistent threat to cardholder data."
+    - id: '11.6.1'
+      name: "Change detection"
+      description: "Monitor for malicious script injection."
+
+xss_dom:
+  requirements: ['6.2.4', '6.3.2', '11.6.1']
+  requirement_details:
+    - id: '6.2.4'
+      name: "Bespoke and custom software are developed securely"
+      description: "Client-side code must be developed with secure practices."
+    - id: '6.3.2'
+      name: "Software vulnerability and patch management"
+      description: "DOM XSS can compromise payment flows."
+    - id: '11.6.1'
+      name: "Change detection"
+      description: "Detect unauthorized DOM manipulation."
+
+broken_access_control:
+  requirements: ['7.2.1', '7.2.2', '7.3.1', '8.6.3']
+  requirement_details:
+    - id: '7.2.1'
+      name: "An access control model is defined and implemented"
+      description: "Coverage of all system components and alignment with business needs for access."
+    - id: '7.2.2'
+      name: "Access is assigned to users based on job classification and function"
+      description: "All user access is based on the job classification and function (also known as role-based access control - RBAC)."
+    - id: '7.3.1'
+      name: "Access to system components and data is managed via an access control system(s)"
+      description: "Ensure that no one person can compromise the system. IDOR/BOLA violates segregation of duties."
+    - id: '8.6.3'
+      name: "Use of application and system accounts and associated authentication factors is managed"
+      description: "Improper access control can lead to unauthorized account access."
+
+broken_authentication:
+  requirements: ['8.2.1', '8.2.3', '8.3.1', '8.3.6', '8.4.2']
+  requirement_details:
+    - id: '8.2.1'
+      name: "All users are assigned a unique ID before access to system components or cardholder data is allowed"
+      description: "Broken authentication can allow bypassing user identification."
+    - id: '8.2.3'
+      name: "User identity is verified before modifying any authentication factor"
+      description: "Authentication flaws allow unauthorized factor modification."
+    - id: '8.3.1'
+      name: "Multi-factor authentication (MFA) is implemented for all access into the CDE"
+      description: "Weak authentication increases risk of unauthorized access."
+    - id: '8.3.6'
+      name: "Authentication factors are implemented to resist attacks"
+      description: "Passwords/passphrases meet specified minimum length and complexity."
+    - id: '8.4.2'
+      name: "MFA is implemented for all access into the CDE"
+      description: "Authentication vulnerabilities undermine MFA effectiveness."
+
+sensitive_data_exposure:
+  requirements: ['3.1.1', '3.2.1', '3.3.1', '3.5.1', '4.2.1']
+  requirement_details:
+    - id: '3.1.1'
+      name: "Processes and mechanisms for protecting stored account data are defined and understood"
+      description: "Data exposure violates cardholder data protection requirements."
+    - id: '3.2.1'
+      name: "Account data storage is kept to a minimum"
+      description: "Excessive data exposure increases risk of cardholder data compromise."
+    - id: '3.3.1'
+      name: "Sensitive authentication data (SAD) is not retained after authorization"
+      description: "Data exposure can reveal SAD that should not be stored."
+    - id: '3.5.1'
+      name: "Primary account number (PAN) is secured wherever it is stored"
+      description: "PAN must be rendered unreadable anywhere it is stored. Exposure violates this."
+    - id: '4.2.1'
+      name: "Strong cryptography and security protocols are implemented to safeguard PAN during transmission"
+      description: "Cleartext transmission exposes PAN."
+
+xxe:
+  requirements: ['6.2.4', '6.3.2', '6.5.1']
+  requirement_details:
+    - id: '6.2.4'
+      name: "Bespoke and custom software are developed securely"
+      description: "XXE is an injection vulnerability requiring secure coding practices."
+    - id: '6.3.2'
+      name: "Software vulnerability and patch management"
+      description: "XXE can lead to data exposure or SSRF."
+    - id: '6.5.1'
+      name: "Security vulnerabilities are identified and addressed"
+      description: "Injection flaws like XXE must be prevented."
+
+security_misconfiguration:
+  requirements: ['2.2.1', '2.2.2', '2.2.7', '6.2.4']
+  requirement_details:
+    - id: '2.2.1'
+      name: "Configuration standards are developed, implemented, and maintained"
+      description: "All system components have configuration standards appropriate to the component's function."
+    - id: '2.2.2'
+      name: "Vendor default accounts are managed"
+      description: "Default passwords are changed or disabled before system deployment."
+    - id: '2.2.7'
+      name: "All security features are defined and implemented"
+      description: "Security headers and configurations must be properly implemented."
+    - id: '6.2.4'
+      name: "Bespoke and custom software are developed securely"
+      description: "Applications must be configured securely."
+
+cors_misconfiguration:
+  requirements: ['2.2.1', '6.2.4', '6.5.10']
+  requirement_details:
+    - id: '2.2.1'
+      name: "Configuration standards are developed, implemented, and maintained"
+      description: "CORS policies must be part of secure configuration standards."
+    - id: '6.2.4'
+      name: "Bespoke and custom software are developed securely"
+      description: "Proper CORS configuration is part of secure development."
+    - id: '6.5.10'
+      name: "Broken access control"
+      description: "Permissive CORS allows unauthorized cross-origin access."
+
+insecure_deserialization:
+  requirements: ['6.2.4', '6.3.2', '6.5.1']
+  requirement_details:
+    - id: '6.2.4'
+      name: "Bespoke and custom software are developed securely"
+      description: "Deserialization of untrusted data requires secure handling."
+    - id: '6.3.2'
+      name: "Software vulnerability and patch management"
+      description: "Deserialization flaws can lead to RCE."
+    - id: '6.5.1'
+      name: "Security vulnerabilities are identified and addressed"
+      description: "Insecure deserialization is a critical vulnerability."
+
+ssrf:
+  requirements: ['6.2.4', '6.3.2', '11.6.1', '1.4.2']
+  requirement_details:
+    - id: '6.2.4'
+      name: "Bespoke and custom software are developed securely"
+      description: "SSRF prevention requires secure URL handling."
+    - id: '6.3.2'
+      name: "Software vulnerability and patch management"
+      description: "SSRF can access internal systems and cardholder data."
+    - id: '11.6.1'
+      name: "Change detection"
+      description: "Monitor for unauthorized outbound requests."
+    - id: '1.4.2'
+      name: "Inbound traffic to the CDE is restricted"
+      description: "SSRF can bypass network controls."
+
+path_traversal:
+  requirements: ['6.2.4', '7.2.1', '6.5.8']
+  requirement_details:
+    - id: '6.2.4'
+      name: "Bespoke and custom software are developed securely"
+      description: "Path traversal requires input validation."
+    - id: '7.2.1'
+      name: "An access control model is defined and implemented"
+      description: "File access must respect access control boundaries."
+    - id: '6.5.8'
+      name: "Improper access control"
+      description: "Path traversal violates intended file access restrictions."
+
+command_injection:
+  requirements: ['6.2.4', '6.3.2', '11.6.1']
+  requirement_details:
+    - id: '6.2.4'
+      name: "Bespoke and custom software are developed securely"
+      description: "Command injection is a critical injection flaw."
+    - id: '6.3.2'
+      name: "Software vulnerability and patch management"
+      description: "OS command injection can lead to complete system compromise."
+    - id: '11.6.1'
+      name: "Change detection"
+      description: "Monitor for unauthorized command execution."
+
+ldap_injection:
+  requirements: ['6.2.4', '6.3.2', '8.2.1']
+  requirement_details:
+    - id: '6.2.4'
+      name: "Bespoke and custom software are developed securely"
+      description: "LDAP queries must be parameterized."
+    - id: '6.3.2'
+      name: "Software vulnerability and patch management"
+      description: "LDAP injection can bypass authentication."
+    - id: '8.2.1'
+      name: "All users are assigned a unique ID"
+      description: "LDAP injection can compromise user management."
+
+unrestricted_file_upload:
+  requirements: ['6.2.4', '6.3.2', '6.5.3']
+  requirement_details:
+    - id: '6.2.4'
+      name: "Bespoke and custom software are developed securely"
+      description: "File uploads must be validated and restricted."
+    - id: '6.3.2'
+      name: "Software vulnerability and patch management"
+      description: "Unrestricted upload can lead to code execution."
+    - id: '6.5.3'
+      name: "Insecure cryptographic storage"
+      description: "Uploaded files containing cardholder data must be encrypted."
+
+csrf:
+  requirements: ['6.2.4', '6.3.2', '6.5.9']
+  requirement_details:
+    - id: '6.2.4'
+      name: "Bespoke and custom software are developed securely"
+      description: "CSRF protection must be implemented."
+    - id: '6.3.2'
+      name: "Software vulnerability and patch management"
+      description: "CSRF can lead to unauthorized transactions."
+    - id: '6.5.9'
+      name: "Cross-site request forgery (CSRF)"
+      description: "Applications must protect against CSRF attacks."
+
+mass_assignment:
+  requirements: ['6.2.4', '7.2.1', '6.5.8']
+  requirement_details:
+    - id: '6.2.4'
+      name: "Bespoke and custom software are developed securely"
+      description: "Mass assignment requires explicit parameter whitelisting."
+    - id: '7.2.1'
+      name: "An access control model is defined and implemented"
+      description: "Mass assignment can bypass authorization controls."
+    - id: '6.5.8'
+      name: "Improper access control"
+      description: "Unrestricted property binding violates access control."
+
+open_redirect:
+  requirements: ['6.2.4', '6.3.2', '11.6.1']
+  requirement_details:
+    - id: '6.2.4'
+      name: "Bespoke and custom software are developed securely"
+      description: "URL redirects must be validated."
+    - id: '6.3.2'
+      name: "Software vulnerability and patch management"
+      description: "Open redirects can be used for phishing."
+    - id: '11.6.1'
+      name: "Change detection"
+      description: "Monitor for unauthorized redirect behavior."

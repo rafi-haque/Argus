@@ -1,0 +1,964 @@
+{
+  "metadata": {
+    "scan_date": "2025-10-04T13:54:23.279916",
+    "scanner": "Argus",
+    "version": "2.0.0",
+    "total_findings": 7,
+    "standards_covered": [
+      "OWASP Top 10 2021",
+      "CWE",
+      "PCI-DSS v4.0",
+      "HIPAA Security Rule"
+    ]
+  },
+  "executive_summary": {
+    "overall_status": "Mostly Compliant - Minor Issues",
+    "risk_score": 33,
+    "severity_breakdown": {
+      "Critical": 1,
+      "High": 4,
+      "Medium": 1,
+      "Low": 1
+    },
+    "standards_impacted": {
+      "owasp_categories": 4,
+      "cwe_weaknesses": 15,
+      "pci_requirements": 12,
+      "hipaa_controls": 11
+    },
+    "key_concerns": [
+      "1 critical vulnerabilities requiring immediate attention",
+      "Injection vulnerabilities detected (3 findings)",
+      "Access control issues present (1 findings)"
+    ]
+  },
+  "compliance_summary": {
+    "owasp_top10": {
+      "categories_affected": [
+        "A01:2021",
+        "A03:2021",
+        "A05:2021",
+        "A10:2021"
+      ],
+      "count": 4
+    },
+    "cwe": {
+      "weaknesses_found": [
+        2,
+        16,
+        22,
+        73,
+        79,
+        89,
+        98,
+        209,
+        284,
+        285,
+        639,
+        732,
+        862,
+        863,
+        918
+      ],
+      "count": 15
+    },
+    "pci_dss": {
+      "requirements_violated": [
+        "1.4.2",
+        "11.6.1",
+        "2.2.1",
+        "2.2.2",
+        "2.2.7",
+        "6.2.4",
+        "6.3.2",
+        "6.5.8",
+        "7.2.1",
+        "7.2.2",
+        "7.3.1",
+        "8.6.3"
+      ],
+      "count": 12
+    },
+    "hipaa": {
+      "controls_affected": [
+        "\u00a7164.308(a)(1)(ii)(B)",
+        "\u00a7164.308(a)(1)(ii)(D)",
+        "\u00a7164.308(a)(3)",
+        "\u00a7164.308(a)(4)",
+        "\u00a7164.308(a)(5)(ii)(C)",
+        "\u00a7164.308(a)(7)(ii)(B)",
+        "\u00a7164.310(a)(1)",
+        "\u00a7164.312(a)(1)",
+        "\u00a7164.312(a)(2)(i)",
+        "\u00a7164.312(b)",
+        "\u00a7164.312(e)(1)"
+      ],
+      "count": 11
+    }
+  },
+  "findings_by_standard": {
+    "owasp": {
+      "A03:2021": {
+        "category": "Injection",
+        "findings": [
+          {
+            "name": "SQL Injection",
+            "severity": "Critical",
+            "url": "http://example.com/search",
+            "parameter": "q"
+          },
+          {
+            "name": "SQL Injection",
+            "severity": "High",
+            "url": "http://example.com/login",
+            "parameter": "username"
+          },
+          {
+            "name": "Cross-Site Scripting (XSS) - Reflected",
+            "severity": "High",
+            "url": "http://example.com/search",
+            "parameter": "q"
+          }
+        ]
+      },
+      "A10:2021": {
+        "category": "Server-Side Request Forgery (SSRF)",
+        "findings": [
+          {
+            "name": "Server-Side Request Forgery (SSRF)",
+            "severity": "High",
+            "url": "http://example.com/fetch",
+            "parameter": "url"
+          }
+        ]
+      },
+      "A01:2021": {
+        "category": "Broken Access Control",
+        "findings": [
+          {
+            "name": "Broken Object Level Authorization (BOLA/IDOR)",
+            "severity": "High",
+            "url": "http://example.com/api/users/123",
+            "parameter": "id"
+          },
+          {
+            "name": "Path Traversal",
+            "severity": "Medium",
+            "url": "http://example.com/download",
+            "parameter": "file"
+          }
+        ]
+      },
+      "A05:2021": {
+        "category": "Security Misconfiguration",
+        "findings": [
+          {
+            "name": "Missing Security Headers",
+            "severity": "Low",
+            "url": "http://example.com/",
+            "parameter": "N/A"
+          }
+        ]
+      }
+    },
+    "cwe": {
+      "CWE-89": {
+        "findings": [
+          {
+            "name": "SQL Injection",
+            "severity": "Critical",
+            "url": "http://example.com/search"
+          },
+          {
+            "name": "SQL Injection",
+            "severity": "High",
+            "url": "http://example.com/login"
+          }
+        ]
+      },
+      "CWE-79": {
+        "findings": [
+          {
+            "name": "Cross-Site Scripting (XSS) - Reflected",
+            "severity": "High",
+            "url": "http://example.com/search"
+          }
+        ]
+      },
+      "CWE-918": {
+        "findings": [
+          {
+            "name": "Server-Side Request Forgery (SSRF)",
+            "severity": "High",
+            "url": "http://example.com/fetch"
+          }
+        ]
+      },
+      "CWE-639": {
+        "findings": [
+          {
+            "name": "Broken Object Level Authorization (BOLA/IDOR)",
+            "severity": "High",
+            "url": "http://example.com/api/users/123"
+          }
+        ]
+      },
+      "CWE-284": {
+        "findings": [
+          {
+            "name": "Broken Object Level Authorization (BOLA/IDOR)",
+            "severity": "High",
+            "url": "http://example.com/api/users/123"
+          }
+        ]
+      },
+      "CWE-285": {
+        "findings": [
+          {
+            "name": "Broken Object Level Authorization (BOLA/IDOR)",
+            "severity": "High",
+            "url": "http://example.com/api/users/123"
+          }
+        ]
+      },
+      "CWE-862": {
+        "findings": [
+          {
+            "name": "Broken Object Level Authorization (BOLA/IDOR)",
+            "severity": "High",
+            "url": "http://example.com/api/users/123"
+          }
+        ]
+      },
+      "CWE-863": {
+        "findings": [
+          {
+            "name": "Broken Object Level Authorization (BOLA/IDOR)",
+            "severity": "High",
+            "url": "http://example.com/api/users/123"
+          }
+        ]
+      },
+      "CWE-22": {
+        "findings": [
+          {
+            "name": "Path Traversal",
+            "severity": "Medium",
+            "url": "http://example.com/download"
+          }
+        ]
+      },
+      "CWE-73": {
+        "findings": [
+          {
+            "name": "Path Traversal",
+            "severity": "Medium",
+            "url": "http://example.com/download"
+          }
+        ]
+      },
+      "CWE-98": {
+        "findings": [
+          {
+            "name": "Path Traversal",
+            "severity": "Medium",
+            "url": "http://example.com/download"
+          }
+        ]
+      },
+      "CWE-16": {
+        "findings": [
+          {
+            "name": "Missing Security Headers",
+            "severity": "Low",
+            "url": "http://example.com/"
+          }
+        ]
+      },
+      "CWE-2": {
+        "findings": [
+          {
+            "name": "Missing Security Headers",
+            "severity": "Low",
+            "url": "http://example.com/"
+          }
+        ]
+      },
+      "CWE-209": {
+        "findings": [
+          {
+            "name": "Missing Security Headers",
+            "severity": "Low",
+            "url": "http://example.com/"
+          }
+        ]
+      },
+      "CWE-732": {
+        "findings": [
+          {
+            "name": "Missing Security Headers",
+            "severity": "Low",
+            "url": "http://example.com/"
+          }
+        ]
+      }
+    },
+    "pci_dss": {
+      "6.2.4": {
+        "findings": [
+          {
+            "name": "SQL Injection",
+            "severity": "Critical",
+            "url": "http://example.com/search"
+          },
+          {
+            "name": "SQL Injection",
+            "severity": "High",
+            "url": "http://example.com/login"
+          },
+          {
+            "name": "Cross-Site Scripting (XSS) - Reflected",
+            "severity": "High",
+            "url": "http://example.com/search"
+          },
+          {
+            "name": "Server-Side Request Forgery (SSRF)",
+            "severity": "High",
+            "url": "http://example.com/fetch"
+          },
+          {
+            "name": "Path Traversal",
+            "severity": "Medium",
+            "url": "http://example.com/download"
+          },
+          {
+            "name": "Missing Security Headers",
+            "severity": "Low",
+            "url": "http://example.com/"
+          }
+        ]
+      },
+      "6.3.2": {
+        "findings": [
+          {
+            "name": "SQL Injection",
+            "severity": "Critical",
+            "url": "http://example.com/search"
+          },
+          {
+            "name": "SQL Injection",
+            "severity": "High",
+            "url": "http://example.com/login"
+          },
+          {
+            "name": "Cross-Site Scripting (XSS) - Reflected",
+            "severity": "High",
+            "url": "http://example.com/search"
+          },
+          {
+            "name": "Server-Side Request Forgery (SSRF)",
+            "severity": "High",
+            "url": "http://example.com/fetch"
+          }
+        ]
+      },
+      "11.6.1": {
+        "findings": [
+          {
+            "name": "SQL Injection",
+            "severity": "Critical",
+            "url": "http://example.com/search"
+          },
+          {
+            "name": "SQL Injection",
+            "severity": "High",
+            "url": "http://example.com/login"
+          },
+          {
+            "name": "Cross-Site Scripting (XSS) - Reflected",
+            "severity": "High",
+            "url": "http://example.com/search"
+          },
+          {
+            "name": "Server-Side Request Forgery (SSRF)",
+            "severity": "High",
+            "url": "http://example.com/fetch"
+          }
+        ]
+      },
+      "1.4.2": {
+        "findings": [
+          {
+            "name": "Server-Side Request Forgery (SSRF)",
+            "severity": "High",
+            "url": "http://example.com/fetch"
+          }
+        ]
+      },
+      "7.2.1": {
+        "findings": [
+          {
+            "name": "Broken Object Level Authorization (BOLA/IDOR)",
+            "severity": "High",
+            "url": "http://example.com/api/users/123"
+          },
+          {
+            "name": "Path Traversal",
+            "severity": "Medium",
+            "url": "http://example.com/download"
+          }
+        ]
+      },
+      "7.2.2": {
+        "findings": [
+          {
+            "name": "Broken Object Level Authorization (BOLA/IDOR)",
+            "severity": "High",
+            "url": "http://example.com/api/users/123"
+          }
+        ]
+      },
+      "7.3.1": {
+        "findings": [
+          {
+            "name": "Broken Object Level Authorization (BOLA/IDOR)",
+            "severity": "High",
+            "url": "http://example.com/api/users/123"
+          }
+        ]
+      },
+      "8.6.3": {
+        "findings": [
+          {
+            "name": "Broken Object Level Authorization (BOLA/IDOR)",
+            "severity": "High",
+            "url": "http://example.com/api/users/123"
+          }
+        ]
+      },
+      "6.5.8": {
+        "findings": [
+          {
+            "name": "Path Traversal",
+            "severity": "Medium",
+            "url": "http://example.com/download"
+          }
+        ]
+      },
+      "2.2.1": {
+        "findings": [
+          {
+            "name": "Missing Security Headers",
+            "severity": "Low",
+            "url": "http://example.com/"
+          }
+        ]
+      },
+      "2.2.2": {
+        "findings": [
+          {
+            "name": "Missing Security Headers",
+            "severity": "Low",
+            "url": "http://example.com/"
+          }
+        ]
+      },
+      "2.2.7": {
+        "findings": [
+          {
+            "name": "Missing Security Headers",
+            "severity": "Low",
+            "url": "http://example.com/"
+          }
+        ]
+      }
+    },
+    "hipaa": {
+      "\u00a7164.308(a)(1)(ii)(D)": {
+        "findings": [
+          {
+            "name": "SQL Injection",
+            "severity": "Critical",
+            "url": "http://example.com/search"
+          },
+          {
+            "name": "SQL Injection",
+            "severity": "High",
+            "url": "http://example.com/login"
+          },
+          {
+            "name": "Cross-Site Scripting (XSS) - Reflected",
+            "severity": "High",
+            "url": "http://example.com/search"
+          },
+          {
+            "name": "Server-Side Request Forgery (SSRF)",
+            "severity": "High",
+            "url": "http://example.com/fetch"
+          }
+        ]
+      },
+      "\u00a7164.312(a)(1)": {
+        "findings": [
+          {
+            "name": "SQL Injection",
+            "severity": "Critical",
+            "url": "http://example.com/search"
+          },
+          {
+            "name": "SQL Injection",
+            "severity": "High",
+            "url": "http://example.com/login"
+          },
+          {
+            "name": "Cross-Site Scripting (XSS) - Reflected",
+            "severity": "High",
+            "url": "http://example.com/search"
+          },
+          {
+            "name": "Server-Side Request Forgery (SSRF)",
+            "severity": "High",
+            "url": "http://example.com/fetch"
+          },
+          {
+            "name": "Broken Object Level Authorization (BOLA/IDOR)",
+            "severity": "High",
+            "url": "http://example.com/api/users/123"
+          },
+          {
+            "name": "Path Traversal",
+            "severity": "Medium",
+            "url": "http://example.com/download"
+          },
+          {
+            "name": "Missing Security Headers",
+            "severity": "Low",
+            "url": "http://example.com/"
+          }
+        ]
+      },
+      "\u00a7164.308(a)(5)(ii)(C)": {
+        "findings": [
+          {
+            "name": "SQL Injection",
+            "severity": "Critical",
+            "url": "http://example.com/search"
+          },
+          {
+            "name": "SQL Injection",
+            "severity": "High",
+            "url": "http://example.com/login"
+          }
+        ]
+      },
+      "\u00a7164.312(e)(1)": {
+        "findings": [
+          {
+            "name": "Cross-Site Scripting (XSS) - Reflected",
+            "severity": "High",
+            "url": "http://example.com/search"
+          }
+        ]
+      },
+      "\u00a7164.310(a)(1)": {
+        "findings": [
+          {
+            "name": "Server-Side Request Forgery (SSRF)",
+            "severity": "High",
+            "url": "http://example.com/fetch"
+          }
+        ]
+      },
+      "\u00a7164.308(a)(3)": {
+        "findings": [
+          {
+            "name": "Broken Object Level Authorization (BOLA/IDOR)",
+            "severity": "High",
+            "url": "http://example.com/api/users/123"
+          },
+          {
+            "name": "Path Traversal",
+            "severity": "Medium",
+            "url": "http://example.com/download"
+          }
+        ]
+      },
+      "\u00a7164.308(a)(4)": {
+        "findings": [
+          {
+            "name": "Broken Object Level Authorization (BOLA/IDOR)",
+            "severity": "High",
+            "url": "http://example.com/api/users/123"
+          },
+          {
+            "name": "Path Traversal",
+            "severity": "Medium",
+            "url": "http://example.com/download"
+          }
+        ]
+      },
+      "\u00a7164.312(a)(2)(i)": {
+        "findings": [
+          {
+            "name": "Broken Object Level Authorization (BOLA/IDOR)",
+            "severity": "High",
+            "url": "http://example.com/api/users/123"
+          }
+        ]
+      },
+      "\u00a7164.308(a)(1)(ii)(B)": {
+        "findings": [
+          {
+            "name": "Missing Security Headers",
+            "severity": "Low",
+            "url": "http://example.com/"
+          }
+        ]
+      },
+      "\u00a7164.308(a)(7)(ii)(B)": {
+        "findings": [
+          {
+            "name": "Missing Security Headers",
+            "severity": "Low",
+            "url": "http://example.com/"
+          }
+        ]
+      },
+      "\u00a7164.312(b)": {
+        "findings": [
+          {
+            "name": "Missing Security Headers",
+            "severity": "Low",
+            "url": "http://example.com/"
+          }
+        ]
+      }
+    }
+  },
+  "remediation_priorities": [
+    {
+      "vulnerability_type": "SQL Injection",
+      "count": 2,
+      "priority_score": 7,
+      "affected_standards": [
+        "CWE",
+        "HIPAA",
+        "OWASP",
+        "PCI-DSS"
+      ],
+      "recommendation": "Use parameterized queries with proper input validation",
+      "affected_urls": [
+        "http://example.com/search",
+        "http://example.com/login"
+      ]
+    },
+    {
+      "vulnerability_type": "Cross-Site Scripting (XSS) - Reflected",
+      "count": 1,
+      "priority_score": 3,
+      "affected_standards": [
+        "CWE",
+        "HIPAA",
+        "OWASP",
+        "PCI-DSS"
+      ],
+      "recommendation": "Implement context-aware output encoding and CSP",
+      "affected_urls": [
+        "http://example.com/search"
+      ]
+    },
+    {
+      "vulnerability_type": "Server-Side Request Forgery (SSRF)",
+      "count": 1,
+      "priority_score": 3,
+      "affected_standards": [
+        "CWE",
+        "HIPAA",
+        "OWASP",
+        "PCI-DSS"
+      ],
+      "recommendation": "Whitelist allowed domains and implement URL validation",
+      "affected_urls": [
+        "http://example.com/fetch"
+      ]
+    },
+    {
+      "vulnerability_type": "Broken Object Level Authorization (BOLA/IDOR)",
+      "count": 1,
+      "priority_score": 3,
+      "affected_standards": [
+        "CWE",
+        "HIPAA",
+        "OWASP",
+        "PCI-DSS"
+      ],
+      "recommendation": "Implement proper authorization checks for every request",
+      "affected_urls": [
+        "http://example.com/api/users/123"
+      ]
+    },
+    {
+      "vulnerability_type": "Path Traversal",
+      "count": 1,
+      "priority_score": 2,
+      "affected_standards": [
+        "CWE",
+        "HIPAA",
+        "OWASP",
+        "PCI-DSS"
+      ],
+      "recommendation": "Use whitelist of allowed files and sanitize file paths",
+      "affected_urls": [
+        "http://example.com/download"
+      ]
+    },
+    {
+      "vulnerability_type": "Missing Security Headers",
+      "count": 1,
+      "priority_score": 1,
+      "affected_standards": [
+        "CWE",
+        "HIPAA",
+        "OWASP",
+        "PCI-DSS"
+      ],
+      "recommendation": "Implement security headers: HSTS, CSP, X-Frame-Options",
+      "affected_urls": [
+        "http://example.com/"
+      ]
+    }
+  ],
+  "detailed_findings": [
+    {
+      "name": "SQL Injection",
+      "module": "sqli",
+      "severity": "Critical",
+      "url": "http://example.com/search",
+      "parameter": "q",
+      "payload": "' OR '1'='1",
+      "evidence": "SQL error revealed",
+      "recommendation": "Use parameterized queries with proper input validation",
+      "compliance": {
+        "owasp": {
+          "category": "Injection",
+          "id": "A03:2021"
+        },
+        "cwe_ids": [
+          89
+        ],
+        "pci_dss": [
+          "6.2.4",
+          "6.3.2",
+          "11.6.1"
+        ],
+        "hipaa": [
+          "\u00a7164.308(a)(1)(ii)(D)",
+          "\u00a7164.312(a)(1)",
+          "\u00a7164.308(a)(5)(ii)(C)"
+        ],
+        "nist": [],
+        "iso27001": []
+      }
+    },
+    {
+      "name": "SQL Injection",
+      "module": "sqli",
+      "severity": "High",
+      "url": "http://example.com/login",
+      "parameter": "username",
+      "payload": "admin' --",
+      "evidence": "Authentication bypassed",
+      "recommendation": "Use parameterized queries with proper input validation",
+      "compliance": {
+        "owasp": {
+          "category": "Injection",
+          "id": "A03:2021"
+        },
+        "cwe_ids": [
+          89
+        ],
+        "pci_dss": [
+          "6.2.4",
+          "6.3.2",
+          "11.6.1"
+        ],
+        "hipaa": [
+          "\u00a7164.308(a)(1)(ii)(D)",
+          "\u00a7164.312(a)(1)",
+          "\u00a7164.308(a)(5)(ii)(C)"
+        ],
+        "nist": [],
+        "iso27001": []
+      }
+    },
+    {
+      "name": "Cross-Site Scripting (XSS) - Reflected",
+      "module": "xss",
+      "severity": "High",
+      "url": "http://example.com/search",
+      "parameter": "q",
+      "payload": "<script>alert(document.cookie)</script>",
+      "evidence": "Script executed in browser",
+      "recommendation": "Implement context-aware output encoding and CSP",
+      "compliance": {
+        "owasp": {
+          "category": "Injection",
+          "id": "A03:2021"
+        },
+        "cwe_ids": [
+          79
+        ],
+        "pci_dss": [
+          "6.2.4",
+          "6.3.2",
+          "11.6.1"
+        ],
+        "hipaa": [
+          "\u00a7164.308(a)(1)(ii)(D)",
+          "\u00a7164.312(a)(1)",
+          "\u00a7164.312(e)(1)"
+        ],
+        "nist": [],
+        "iso27001": []
+      }
+    },
+    {
+      "name": "Server-Side Request Forgery (SSRF)",
+      "module": "ssrf",
+      "severity": "High",
+      "url": "http://example.com/fetch",
+      "parameter": "url",
+      "payload": "http://169.254.169.254/latest/meta-data/",
+      "evidence": "Internal metadata accessed",
+      "recommendation": "Whitelist allowed domains and implement URL validation",
+      "compliance": {
+        "owasp": {
+          "category": "Server-Side Request Forgery (SSRF)",
+          "id": "A10:2021"
+        },
+        "cwe_ids": [
+          918
+        ],
+        "pci_dss": [
+          "6.2.4",
+          "6.3.2",
+          "11.6.1",
+          "1.4.2"
+        ],
+        "hipaa": [
+          "\u00a7164.308(a)(1)(ii)(D)",
+          "\u00a7164.312(a)(1)",
+          "\u00a7164.310(a)(1)"
+        ],
+        "nist": [],
+        "iso27001": []
+      }
+    },
+    {
+      "name": "Broken Object Level Authorization (BOLA/IDOR)",
+      "module": "api_vulnerabilities",
+      "severity": "High",
+      "url": "http://example.com/api/users/123",
+      "parameter": "id",
+      "payload": "456",
+      "evidence": "Unauthorized user data accessed",
+      "recommendation": "Implement proper authorization checks for every request",
+      "compliance": {
+        "owasp": {
+          "category": "Broken Access Control",
+          "id": "A01:2021"
+        },
+        "cwe_ids": [
+          639,
+          284,
+          285,
+          862,
+          863
+        ],
+        "pci_dss": [
+          "7.2.1",
+          "7.2.2",
+          "7.3.1",
+          "8.6.3"
+        ],
+        "hipaa": [
+          "\u00a7164.308(a)(3)",
+          "\u00a7164.308(a)(4)",
+          "\u00a7164.312(a)(1)",
+          "\u00a7164.312(a)(2)(i)"
+        ],
+        "nist": [],
+        "iso27001": []
+      }
+    },
+    {
+      "name": "Path Traversal",
+      "module": "lfi_rfi",
+      "severity": "Medium",
+      "url": "http://example.com/download",
+      "parameter": "file",
+      "payload": "../../../etc/passwd",
+      "evidence": "System file accessed",
+      "recommendation": "Use whitelist of allowed files and sanitize file paths",
+      "compliance": {
+        "owasp": {
+          "category": "Broken Access Control",
+          "id": "A01:2021"
+        },
+        "cwe_ids": [
+          22,
+          73,
+          98
+        ],
+        "pci_dss": [
+          "6.2.4",
+          "7.2.1",
+          "6.5.8"
+        ],
+        "hipaa": [
+          "\u00a7164.308(a)(3)",
+          "\u00a7164.308(a)(4)",
+          "\u00a7164.312(a)(1)"
+        ],
+        "nist": [],
+        "iso27001": []
+      }
+    },
+    {
+      "name": "Missing Security Headers",
+      "module": "insecure_headers",
+      "severity": "Low",
+      "url": "http://example.com/",
+      "parameter": "N/A",
+      "payload": "N/A",
+      "evidence": "X-Frame-Options header missing",
+      "recommendation": "Implement security headers: HSTS, CSP, X-Frame-Options",
+      "compliance": {
+        "owasp": {
+          "category": "Security Misconfiguration",
+          "id": "A05:2021"
+        },
+        "cwe_ids": [
+          16,
+          2,
+          209,
+          732
+        ],
+        "pci_dss": [
+          "2.2.1",
+          "2.2.2",
+          "2.2.7",
+          "6.2.4"
+        ],
+        "hipaa": [
+          "\u00a7164.308(a)(1)(ii)(B)",
+          "\u00a7164.308(a)(7)(ii)(B)",
+          "\u00a7164.312(a)(1)",
+          "\u00a7164.312(b)"
+        ],
+        "nist": [],
+        "iso27001": []
+      }
+    }
+  ]
+}

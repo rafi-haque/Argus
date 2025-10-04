@@ -1,10 +1,10 @@
 """Insecure Headers Attack Module - Detects missing security headers."""
 from typing import Dict, List
-import requests
-from .base import BaseAttackModule
+import httpx
+from .async_base import AsyncBaseAttackModule
 
 
-class InsecureHeadersModule(BaseAttackModule):
+class InsecureHeadersModule(AsyncBaseAttackModule):
     """Detects missing or misconfigured security headers."""
     
     # Security headers to check
@@ -59,7 +59,7 @@ class InsecureHeadersModule(BaseAttackModule):
         """
         return True
     
-    def scan(self, url: str, parameter: dict, session: requests.Session) -> List[Dict]:
+    async def scan(self, url: str, parameter: dict, client: httpx.AsyncClient) -> List[Dict]:
         """Scan for missing security headers.
         
         Args:
@@ -74,10 +74,10 @@ class InsecureHeadersModule(BaseAttackModule):
         
         try:
             # Make GET request
-            response = session.get(
+            response = await client.get(
                 url,
                 timeout=self.config.get('performance', {}).get('timeout', 10),
-                allow_redirects=True
+                follow_redirects=True
             )
             
             # Check each security header
@@ -123,7 +123,7 @@ class InsecureHeadersModule(BaseAttackModule):
                 }
                 findings.append(finding)
         
-        except requests.exceptions.RequestException as e:
+        except (httpx.HTTPError, httpx.TimeoutException) as e:
             # Don't fail on network errors, just skip
             if self.config.get('verbose'):
                 print(f"Warning: Could not check headers for {url}: {e}")

@@ -1,5 +1,5 @@
 """Open Redirect detection module."""
-import requests
+import httpx
 from typing import Dict, List
 from urllib.parse import urlparse
 
@@ -68,7 +68,7 @@ class OpenRedirectModule:
         
         return any(indicator in param_name for indicator in redirect_indicators)
     
-    def scan(self, url: str, parameter: dict, session: requests.Session) -> List[Dict]:
+    async def scan(self, url: str, parameter: dict, client: httpx.AsyncClient) -> List[Dict]:
         """Test for open redirect vulnerabilities.
         
         Args:
@@ -90,10 +90,10 @@ class OpenRedirectModule:
                 test_url = self._inject_payload(url, param_name, payload, param_location)
                 
                 # Don't follow redirects automatically
-                response = session.get(
+                response = await client.get(
                     test_url,
                     timeout=self.timeout,
-                    allow_redirects=False
+                    follow_redirects=False
                 )
                 
                 # Check if redirect occurred
@@ -135,7 +135,7 @@ class OpenRedirectModule:
                         findings.append(finding)
                         break
             
-            except requests.exceptions.RequestException:
+            except (httpx.HTTPError, httpx.TimeoutException):
                 continue
         
         return findings

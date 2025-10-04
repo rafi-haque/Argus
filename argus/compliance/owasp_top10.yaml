@@ -1,0 +1,299 @@
+# OWASP Top 10 2021 Vulnerability Mappings
+#
+# Maps vulnerability types to OWASP Top 10:2021 categories
+# Source: https://owasp.org/Top10/
+
+sql_injection:
+  id: A03:2021
+  category: Injection
+  rank: 3
+  description: |
+    SQL Injection allows attackers to interfere with database queries by injecting
+    malicious SQL code. This can result in unauthorized data access, modification,
+    or deletion.
+  impact: High
+  remediation: |
+    - Use parameterized queries (prepared statements)
+    - Employ stored procedures with parameter binding
+    - Implement input validation and sanitization
+    - Apply principle of least privilege for database accounts
+    - Use ORM frameworks with built-in protection
+
+xss_reflected:
+  id: A03:2021
+  category: Injection
+  rank: 3
+  description: |
+    Reflected Cross-Site Scripting (XSS) occurs when user input is immediately
+    returned to the user without proper sanitization, allowing script injection.
+  impact: Medium to High
+  remediation: |
+    - Implement context-aware output encoding
+    - Use Content Security Policy (CSP) headers
+    - Validate and sanitize all user inputs
+    - Use secure frameworks with auto-escaping
+
+xss_stored:
+  id: A03:2021
+  category: Injection
+  rank: 3
+  description: |
+    Stored Cross-Site Scripting (XSS) occurs when malicious scripts are stored
+    in the database and served to users, affecting multiple victims.
+  impact: High
+  remediation: |
+    - Sanitize data before storing in database
+    - Implement output encoding when displaying stored data
+    - Use Content Security Policy (CSP)
+    - Validate input formats strictly
+
+xss_dom:
+  id: A03:2021
+  category: Injection
+  rank: 3
+  description: |
+    DOM-based XSS occurs when JavaScript code processes user input unsafely,
+    modifying the DOM in ways that allow script execution.
+  impact: Medium to High
+  remediation: |
+    - Avoid using dangerous JavaScript functions (eval, innerHTML)
+    - Use safe DOM manipulation methods (textContent, setAttribute)
+    - Implement CSP with strict-dynamic
+    - Validate client-side inputs
+
+broken_access_control:
+  id: A01:2021
+  category: Broken Access Control
+  rank: 1
+  description: |
+    Broken Access Control occurs when users can access resources or perform
+    actions outside their intended permissions. Includes BOLA/IDOR vulnerabilities.
+  impact: Critical
+  remediation: |
+    - Implement authorization checks on every request
+    - Use indirect reference maps
+    - Deny access by default
+    - Log access control failures
+    - Implement role-based access control (RBAC)
+    - Validate user permissions server-side
+
+broken_authentication:
+  id: A07:2021
+  category: Identification and Authentication Failures
+  rank: 7
+  description: |
+    Authentication and session management flaws allow attackers to compromise
+    passwords, keys, session tokens, or exploit implementation flaws.
+  impact: Critical
+  remediation: |
+    - Implement multi-factor authentication (MFA)
+    - Use secure password policies
+    - Implement account lockout mechanisms
+    - Rotate session identifiers after login
+    - Use secure session management
+    - Implement proper logout functionality
+
+sensitive_data_exposure:
+  id: A02:2021
+  category: Cryptographic Failures
+  rank: 2
+  description: |
+    Sensitive data exposure occurs when applications don't adequately protect
+    sensitive information like financial data, health records, or PII.
+  impact: Critical
+  remediation: |
+    - Encrypt sensitive data at rest and in transit
+    - Use strong encryption algorithms (AES-256, RSA-2048+)
+    - Implement TLS 1.2+ for all connections
+    - Avoid caching sensitive data
+    - Classify and protect data based on sensitivity
+    - Implement proper key management
+
+xxe:
+  id: A05:2021
+  category: Security Misconfiguration
+  rank: 5
+  description: |
+    XML External Entity (XXE) injection allows attackers to interfere with
+    XML processing, potentially leading to file disclosure, SSRF, or DoS.
+  impact: High
+  remediation: |
+    - Disable XML external entity processing
+    - Use less complex data formats (JSON)
+    - Patch and upgrade XML processors
+    - Implement input validation for XML data
+    - Use SAST tools to detect XXE vulnerabilities
+
+security_misconfiguration:
+  id: A05:2021
+  category: Security Misconfiguration
+  rank: 5
+  description: |
+    Security misconfiguration includes missing security headers, verbose error
+    messages, default accounts, and insecure default configurations.
+  impact: Medium to High
+  remediation: |
+    - Implement security headers (HSTS, X-Frame-Options, CSP)
+    - Remove default accounts and credentials
+    - Disable directory listing and verbose errors
+    - Keep software up to date
+    - Implement secure configuration management
+    - Use security scanning tools
+
+cors_misconfiguration:
+  id: A05:2021
+  category: Security Misconfiguration
+  rank: 5
+  description: |
+    CORS misconfiguration allows unauthorized domains to make cross-origin
+    requests, potentially exposing sensitive data.
+  impact: Medium
+  remediation: |
+    - Whitelist specific trusted origins
+    - Avoid using wildcard (*) for Access-Control-Allow-Origin
+    - Validate Origin header server-side
+    - Implement proper preflight request handling
+    - Don't reflect Origin header without validation
+
+insecure_deserialization:
+  id: A08:2021
+  category: Software and Data Integrity Failures
+  rank: 8
+  description: |
+    Insecure deserialization can lead to remote code execution, replay attacks,
+    injection attacks, and privilege escalation.
+  impact: Critical
+  remediation: |
+    - Avoid deserializing untrusted data
+    - Implement integrity checks (HMAC)
+    - Use serialization formats without code execution (JSON)
+    - Monitor and log deserialization exceptions
+    - Implement strict type constraints
+
+ssrf:
+  id: A10:2021
+  category: Server-Side Request Forgery (SSRF)
+  rank: 10
+  description: |
+    SSRF flaws occur when a web application fetches a remote resource without
+    validating the user-supplied URL, allowing access to internal systems.
+  impact: High
+  remediation: |
+    - Whitelist allowed protocols, domains, and ports
+    - Disable HTTP redirections
+    - Use network segmentation
+    - Validate and sanitize all URL inputs
+    - Block requests to internal IP ranges
+    - Implement request timeouts
+
+path_traversal:
+  id: A01:2021
+  category: Broken Access Control
+  rank: 1
+  description: |
+    Path traversal (directory traversal, LFI, RFI) allows attackers to access
+    files and directories outside the intended directory.
+  impact: High
+  remediation: |
+    - Use indirect references (IDs instead of filenames)
+    - Validate and sanitize file paths
+    - Use chroot jails or sandboxing
+    - Implement strict file access permissions
+    - Avoid user input in file system operations
+    - Use whitelists for allowed files
+
+command_injection:
+  id: A03:2021
+  category: Injection
+  rank: 3
+  description: |
+    OS Command Injection allows attackers to execute arbitrary system commands
+    on the host operating system.
+  impact: Critical
+  remediation: |
+    - Avoid calling OS commands with user input
+    - Use language-specific libraries instead of shell commands
+    - Implement strict input validation
+    - Use parameterized APIs
+    - Apply principle of least privilege
+    - Implement command whitelisting
+
+ldap_injection:
+  id: A03:2021
+  category: Injection
+  rank: 3
+  description: |
+    LDAP Injection allows attackers to manipulate LDAP queries, potentially
+    bypassing authentication or accessing unauthorized data.
+  impact: High
+  remediation: |
+    - Use parameterized LDAP queries
+    - Escape special characters in user input
+    - Implement input validation
+    - Apply principle of least privilege
+    - Use framework-provided query builders
+
+unrestricted_file_upload:
+  id: A04:2021
+  category: Insecure Design
+  rank: 4
+  description: |
+    Unrestricted file upload allows attackers to upload malicious files,
+    potentially leading to code execution, XSS, or DoS.
+  impact: Critical
+  remediation: |
+    - Validate file types by content (magic bytes)
+    - Restrict file extensions to whitelist
+    - Scan uploaded files with antivirus
+    - Store files outside web root
+    - Generate random filenames
+    - Implement file size limits
+    - Use separate domain for uploads
+
+csrf:
+  id: A01:2021
+  category: Broken Access Control
+  rank: 1
+  description: |
+    Cross-Site Request Forgery forces authenticated users to perform unwanted
+    actions on web applications.
+  impact: Medium to High
+  remediation: |
+    - Implement CSRF tokens (synchronizer token pattern)
+    - Use SameSite cookie attribute
+    - Verify Origin and Referer headers
+    - Require re-authentication for sensitive actions
+    - Use custom headers for AJAX requests
+    - Implement double-submit cookie pattern
+
+mass_assignment:
+  id: A04:2021
+  category: Insecure Design
+  rank: 4
+  description: |
+    Mass Assignment allows attackers to modify object properties that shouldn't
+    be changed, potentially leading to privilege escalation.
+  impact: High
+  remediation: |
+    - Use explicit whitelists for allowed properties
+    - Implement DTOs (Data Transfer Objects)
+    - Disable automatic binding of all properties
+    - Use separate models for input and database
+    - Validate property access permissions
+    - Implement field-level authorization
+
+open_redirect:
+  id: A01:2021
+  category: Broken Access Control
+  rank: 1
+  description: |
+    Open Redirect vulnerabilities allow attackers to redirect users to malicious
+    sites, often used for phishing attacks.
+  impact: Medium
+  remediation: |
+    - Avoid redirects based on user input
+    - Use whitelist of allowed redirect URLs
+    - Validate URLs against trusted domains
+    - Use indirect references (IDs) instead of URLs
+    - Warn users before external redirects
+    - Implement strict URL validation

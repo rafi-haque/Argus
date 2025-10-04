@@ -1,10 +1,11 @@
 """CSRF (Cross-Site Request Forgery) detection module."""
-import requests
+import httpx
 from typing import Dict, List
 from bs4 import BeautifulSoup
+from .async_base import AsyncBaseAttackModule
 
 
-class CSRFModule:
+class CSRFModule(AsyncBaseAttackModule):
     """Module to detect missing CSRF protection."""
     
     def __init__(self, config: dict):
@@ -54,7 +55,7 @@ class CSRFModule:
         method = context.get('method', 'GET').upper()
         return method in ['POST', 'PUT', 'DELETE', 'PATCH']
     
-    def scan(self, url: str, parameter: dict, session: requests.Session) -> List[Dict]:
+    async def scan(self, url: str, parameter: dict, client: httpx.AsyncClient) -> List[Dict]:
         """Check for missing CSRF protection.
         
         Args:
@@ -69,7 +70,7 @@ class CSRFModule:
         
         try:
             # Get the page containing the form
-            response = session.get(url, timeout=self.timeout)
+            response = await client.get(url, timeout=self.timeout)
             
             if response.status_code != 200:
                 return findings
@@ -92,8 +93,8 @@ class CSRFModule:
                 
                 if not has_csrf_token:
                     # Check if endpoint expects CSRF in header
-                    has_csrf_header = self._check_csrf_header_requirement(
-                        url, session
+                    has_csrf_header = await self._check_csrf_header_requirement(
+                        url, client
                     )
                     
                     if not has_csrf_header:
@@ -112,7 +113,7 @@ class CSRFModule:
                         }
                         findings.append(finding)
         
-        except requests.exceptions.RequestException as e:
+        except (httpx.HTTPError, httpx.TimeoutException) as e:
             if self.config.get('verbose'):
                 print(f"Warning: Could not check CSRF for {url}: {e}")
         
@@ -144,19 +145,19 @@ class CSRFModule:
         
         return False
     
-    def _check_csrf_header_requirement(self, url: str, session: requests.Session) -> bool:
+    async def _check_csrf_header_requirement(self, url: str, client: httpx.AsyncClient) -> bool:
         """Check if endpoint requires CSRF token in header.
         
         Args:
             url: URL to check
-            session: Requests session
+            client: HTTP client
             
         Returns:
             bool: True if CSRF header is required
         """
         try:
             # Try POST without CSRF header
-            response = session.post(url, data={}, timeout=self.timeout)
+            response = await client.post(url, data={}, timeout=self.timeout)
             
             # If we get 403 with CSRF-related error, it's protected
             if response.status_code == 403:
@@ -165,7 +166,7 @@ class CSRFModule:
                        ['csrf', 'token', 'forbidden', 'invalid']):
                     return True
         
-        except requests.exceptions.RequestException:
+        except (httpx.HTTPError, httpx.TimeoutException):
             pass
         
         return False

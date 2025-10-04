@@ -1,12 +1,12 @@
 """XSS (Cross-Site Scripting) attack module - Reflected and DOM-based detection."""
 from typing import Dict, List
-import requests
+import httpx
 import hashlib
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
-from .base import BaseAttackModule
+from .async_base import AsyncBaseAttackModule
 
 
-class XSSModule(BaseAttackModule):
+class XSSModule(AsyncBaseAttackModule):
     """Detects XSS vulnerabilities."""
     
     def __init__(self, config: dict):
@@ -38,13 +38,13 @@ class XSSModule(BaseAttackModule):
         # Apply to all query and body parameters (user input)
         return parameter.get('location') in ['query', 'body']
     
-    def scan(self, url: str, parameter: dict, session: requests.Session) -> List[Dict]:
+    async def scan(self, url: str, parameter: dict, client: httpx.AsyncClient) -> List[Dict]:
         """Scan for XSS vulnerabilities.
         
         Args:
             url: URL to test
             parameter: Parameter to test
-            session: Requests session
+            client: Async HTTP client
         
         Returns:
             list: Findings
@@ -52,25 +52,25 @@ class XSSModule(BaseAttackModule):
         findings = []
         
         # Try reflected XSS with browser validation
-        reflected_finding = self._test_reflected_xss_with_browser(url, parameter, session)
+        reflected_finding = await self._test_reflected_xss_with_browser(url, parameter, client)
         if reflected_finding:
             findings.append(reflected_finding)
             return findings  # Found confirmed XSS
         
         # Fallback to simple reflection detection
-        reflected_finding = self._test_reflected_xss(url, parameter, session)
+        reflected_finding = await self._test_reflected_xss(url, parameter, client)
         if reflected_finding:
             findings.append(reflected_finding)
         
         # Try DOM-based XSS (if Playwright available)
         if not reflected_finding:  # Only if reflected didn't find anything
-            dom_finding = self._test_dom_xss(url, parameter)
+            dom_finding = await self._test_dom_xss(url, parameter)
             if dom_finding:
                 findings.append(dom_finding)
         
         return findings
     
-    def _test_reflected_xss_with_browser(self, url: str, parameter: dict, session: requests.Session) -> Dict:
+    async def _test_reflected_xss_with_browser(self, url: str, parameter: dict, client: httpx.AsyncClient) -> Dict:
         """Test for reflected XSS with headless browser validation.
         
         This method confirms that the XSS payload actually executes JavaScript
@@ -153,7 +153,7 @@ class XSSModule(BaseAttackModule):
         
         return None
     
-    def _test_reflected_xss(self, url: str, parameter: dict, session: requests.Session) -> Dict:
+    async def _test_reflected_xss(self, url: str, parameter: dict, client: httpx.AsyncClient) -> Dict:
         """Test for reflected XSS.
         
         Args:
@@ -186,7 +186,7 @@ class XSSModule(BaseAttackModule):
                 test_url = self._inject_payload(url, param_name, payload, param_location)
                 
                 # Make request
-                response = session.get(test_url, timeout=self.timeout)
+                response = await client.get(test_url, timeout=self.timeout)
                 
                 # Check if payload is reflected in response
                 if payload in response.text:
@@ -218,12 +218,12 @@ class XSSModule(BaseAttackModule):
                             'recommendation': 'Encode output based on context: HTML entity encoding for HTML context, JavaScript encoding for JS context, URL encoding for URLs. Implement Content Security Policy (CSP). Use template engines with auto-escaping. Validate input on server side.'
                         }
             
-            except requests.exceptions.RequestException:
+            except (httpx.HTTPError, httpx.TimeoutException):
                 continue
         
         return None
     
-    def _test_dom_xss(self, url: str, parameter: dict) -> Dict:
+    async def _test_dom_xss(self, url: str, parameter: dict) -> Dict:
         """Test for DOM-based XSS using headless browser.
         
         Args:

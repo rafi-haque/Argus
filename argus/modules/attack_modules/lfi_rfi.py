@@ -1,8 +1,9 @@
 """Local File Inclusion (LFI) and Remote File Inclusion (RFI) detection module."""
-from argus.modules.attack_modules.base import BaseAttackModule
+import httpx
+from .async_base import AsyncBaseAttackModule
 
 
-class LFIRFIModule(BaseAttackModule):
+class LFIRFIModule(AsyncBaseAttackModule):
     """Detects Local and Remote File Inclusion vulnerabilities.
     
     LFI allows reading arbitrary files on the server's filesystem.
@@ -124,13 +125,13 @@ class LFIRFIModule(BaseAttackModule):
         
         return any(keyword in param_name_lower for keyword in file_keywords)
     
-    def scan(self, url: str, parameter: dict, session) -> list:
+    async def scan(self, url: str, parameter: dict, client: httpx.AsyncClient) -> list:
         """Scan for LFI/RFI vulnerabilities.
         
         Args:
             url: Target URL
             parameter: Parameter to test
-            session: Requests session
+            client: httpx AsyncClient
         
         Returns:
             list: Findings
@@ -138,15 +139,15 @@ class LFIRFIModule(BaseAttackModule):
         findings = []
         
         # Test LFI
-        findings.extend(self._test_lfi(url, parameter, session))
+        findings.extend(await self._test_lfi(url, parameter, client))
         
         # Test RFI (only if LFI not found to save time)
         if not findings and self.config.get('test_rfi', False):
-            findings.extend(self._test_rfi(url, parameter, session))
+            findings.extend(await self._test_rfi(url, parameter, client))
         
         return findings
     
-    def _test_lfi(self, url: str, parameter: dict, session) -> list:
+    async def _test_lfi(self, url: str, parameter: dict, client: httpx.AsyncClient) -> list:
         """Test for Local File Inclusion.
         
         Args:
@@ -162,14 +163,14 @@ class LFIRFIModule(BaseAttackModule):
         try:
             # Get baseline
             baseline_params = {parameter['name']: parameter['value']}
-            baseline_response = session.get(url, params=baseline_params, timeout=self.timeout)
+            baseline_response = await client.get(url, params=baseline_params, timeout=self.timeout)
             baseline_text = baseline_response.text.lower()
             
             # Test each LFI payload
             for payload in self.LFI_PAYLOADS[:15]:  # Limit for efficiency
                 try:
                     test_params = {parameter['name']: payload}
-                    response = session.get(url, params=test_params, timeout=self.timeout)
+                    response = await client.get(url, params=test_params, timeout=self.timeout)
                     response_text = response.text.lower()
                     
                     # Check for file content patterns
@@ -240,7 +241,7 @@ class LFIRFIModule(BaseAttackModule):
         
         return findings
     
-    def _test_rfi(self, url: str, parameter: dict, session) -> list:
+    async def _test_rfi(self, url: str, parameter: dict, client: httpx.AsyncClient) -> list:
         """Test for Remote File Inclusion.
         
         Args:
@@ -256,13 +257,13 @@ class LFIRFIModule(BaseAttackModule):
         try:
             # Get baseline
             baseline_params = {parameter['name']: parameter['value']}
-            baseline_response = session.get(url, params=baseline_params, timeout=self.timeout)
+            baseline_response = await client.get(url, params=baseline_params, timeout=self.timeout)
             
             # Test RFI payloads
             for payload in self.RFI_PAYLOADS[:2]:  # Very limited testing
                 try:
                     test_params = {parameter['name']: payload}
-                    response = session.get(url, params=test_params, timeout=self.timeout)
+                    response = await client.get(url, params=test_params, timeout=self.timeout)
                     
                     # Check for indicators that remote file was loaded
                     indicators = [

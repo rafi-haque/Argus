@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compliance Security Assessment Report</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .header {
+            background: #1976d2;
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .risk-score {
+            font-size: 48px;
+            font-weight: bold;
+            color: #fbc02d;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .severity-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 2px;
+        }
+        .critical { background: #d32f2f; color: white; }
+        .high { background: #f57c00; color: white; }
+        .medium { background: #fbc02d; color: black; }
+        .low { background: #388e3c; color: white; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #f5f5f5;
+            font-weight: bold;
+        }
+        .standard-section {
+            margin: 20px 0;
+        }
+        .priority-item {
+            background: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛡️ Compliance Security Assessment Report</h1>
+        <p><strong>Generated:</strong> 2025-10-04T13:54:23.279916</p>
+        <p><strong>Scanner:</strong> Argus v2.0.0</p>
+        <p><strong>Total Findings:</strong> 7</p>
+    </div>
+    
+    <div class="card">
+        <h2>Executive Summary</h2>
+        <p><strong>Overall Status:</strong> Mostly Compliant - Minor Issues</p>
+        <div class="risk-score">33/100</div>
+        <p style="text-align: center; color: #666;">Risk Score</p>
+        
+        <h3>Severity Breakdown</h3>
+        <table>
+            <tr>
+                <th>Severity</th>
+                <th>Count</th>
+            </tr>
+            <tr>
+                <td><span class="severity-badge critical">Critical</span></td>
+                <td>1</td>
+            </tr>
+            <tr>
+                <td><span class="severity-badge high">High</span></td>
+                <td>4</td>
+            </tr>
+            <tr>
+                <td><span class="severity-badge medium">Medium</span></td>
+                <td>1</td>
+            </tr>
+            <tr>
+                <td><span class="severity-badge low">Low</span></td>
+                <td>1</td>
+            </tr>
+        </table>
+        <h3>Key Concerns</h3>
+        <ul>
+            <li>1 critical vulnerabilities requiring immediate attention</li>
+            <li>Injection vulnerabilities detected (3 findings)</li>
+            <li>Access control issues present (1 findings)</li>
+        </ul>
+    </div>
+    
+    <div class="card">
+        <h2>Compliance Standards Impact</h2>
+        <div class="standard-section">
+            <h3>📋 OWASP Top 10: 4 categories affected</h3>
+            <p>A01:2021, A03:2021, A05:2021, A10:2021</p>
+        </div>
+        <div class="standard-section">
+            <h3>🔍 CWE: 15 weaknesses identified</h3>
+            <p><strong>Top CWEs:</strong> CWE-2, CWE-16, CWE-22, CWE-73, CWE-79, CWE-89, CWE-98, CWE-209, CWE-284, CWE-285, CWE-639, CWE-732, CWE-862, CWE-863, CWE-918</p>
+        </div>
+        <div class="standard-section">
+            <h3>💳 PCI-DSS v4.0: 12 requirements violated</h3>
+            <p><strong>Requirements:</strong> 1.4.2, 11.6.1, 2.2.1, 2.2.2, 2.2.7, 6.2.4, 6.3.2, 6.5.8, 7.2.1, 7.2.2, 7.3.1, 8.6.3</p>
+        </div>
+        <div class="standard-section">
+            <h3>🏥 HIPAA Security Rule: 11 controls affected</h3>
+            <p>§164.308(a)(1)(ii)(B), §164.308(a)(1)(ii)(D), §164.308(a)(3), §164.308(a)(4), §164.308(a)(5)(ii)(C), §164.308(a)(7)(ii)(B), §164.310(a)(1), §164.312(a)(1), §164.312(a)(2)(i), §164.312(b)</p>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2>Remediation Priorities</h2>
+        <div class="priority-item">
+            <h3>1. SQL Injection</h3>
+            <p><strong>Occurrences:</strong> 2 | <strong>Priority Score:</strong> 7</p>
+            <p><strong>Standards Affected:</strong> CWE, HIPAA, OWASP, PCI-DSS</p>
+            <p><strong>Recommendation:</strong> Use parameterized queries with proper input validation</p>
+        </div>
+        <div class="priority-item">
+            <h3>2. Cross-Site Scripting (XSS) - Reflected</h3>
+            <p><strong>Occurrences:</strong> 1 | <strong>Priority Score:</strong> 3</p>
+            <p><strong>Standards Affected:</strong> CWE, HIPAA, OWASP, PCI-DSS</p>
+            <p><strong>Recommendation:</strong> Implement context-aware output encoding and CSP</p>
+        </div>
+        <div class="priority-item">
+            <h3>3. Server-Side Request Forgery (SSRF)</h3>
+            <p><strong>Occurrences:</strong> 1 | <strong>Priority Score:</strong> 3</p>
+            <p><strong>Standards Affected:</strong> CWE, HIPAA, OWASP, PCI-DSS</p>
+            <p><strong>Recommendation:</strong> Whitelist allowed domains and implement URL validation</p>
+        </div>
+        <div class="priority-item">
+            <h3>4. Broken Object Level Authorization (BOLA/IDOR)</h3>
+            <p><strong>Occurrences:</strong> 1 | <strong>Priority Score:</strong> 3</p>
+            <p><strong>Standards Affected:</strong> CWE, HIPAA, OWASP, PCI-DSS</p>
+            <p><strong>Recommendation:</strong> Implement proper authorization checks for every request</p>
+        </div>
+        <div class="priority-item">
+            <h3>5. Path Traversal</h3>
+            <p><strong>Occurrences:</strong> 1 | <strong>Priority Score:</strong> 2</p>
+            <p><strong>Standards Affected:</strong> CWE, HIPAA, OWASP, PCI-DSS</p>
+            <p><strong>Recommendation:</strong> Use whitelist of allowed files and sanitize file paths</p>
+        </div>
+        <div class="priority-item">
+            <h3>6. Missing Security Headers</h3>
+            <p><strong>Occurrences:</strong> 1 | <strong>Priority Score:</strong> 1</p>
+            <p><strong>Standards Affected:</strong> CWE, HIPAA, OWASP, PCI-DSS</p>
+            <p><strong>Recommendation:</strong> Implement security headers: HSTS, CSP, X-Frame-Options</p>
+        </div>
+    </div>
+    
+    <div class="card" style="background: #f5f5f5; text-align: center; padding: 15px;">
+        <p style="margin: 0; color: #666;">Report generated by Argus Security Scanner</p>
+    </div>
+</body>
+</html>

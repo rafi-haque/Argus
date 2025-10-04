@@ -60,7 +60,7 @@ class AsyncSQLiModule(AsyncBaseAttackModule):
     
     def name(self) -> str:
         """Return module name."""
-        return "async_sqli"
+        return "sqli"
     
     def description(self) -> str:
         """Return module description."""
@@ -78,11 +78,13 @@ class AsyncSQLiModule(AsyncBaseAttackModule):
         """
         param_name = parameter.get('name', '').lower()
         
-        # SQL-prone parameter names
+        # SQL-prone parameter names (comprehensive list for Juice Shop and similar apps)
         sqli_keywords = [
             'id', 'user', 'uid', 'account', 'name', 'key',
             'order', 'sort', 'search', 'query', 'filter',
-            'category', 'type', 'status', 'page', 'limit'
+            'category', 'type', 'status', 'page', 'limit',
+            'q', 'keyword', 'term', 'find', 'email', 'username',
+            'cat', 'offset', 'pid', 'cid', 'post', 'product', 'article'
         ]
         
         return any(keyword in param_name for keyword in sqli_keywords)

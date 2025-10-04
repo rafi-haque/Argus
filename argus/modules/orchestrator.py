@@ -98,20 +98,39 @@ class ScannerOrchestrator:
                         # Apply contextual rules to prioritize modules
                         prioritized_modules = self._get_prioritized_modules(parameter, context)
                         
+                        if self.config.get('verbose'):
+                            print(f"\n[ORCHESTRATOR] Testing parameter '{parameter['name']}' on {url}")
+                            print(f"[ORCHESTRATOR] Prioritized modules: {[m.name() for m in prioritized_modules]}")
+                        
                         # Check which modules apply to this parameter
                         for module in prioritized_modules:
+                            if self.config.get('verbose'):
+                                print(f"[ORCHESTRATOR] Checking {module.name()}...")
+                            
                             if module.check_applicable(parameter, context):
+                                if self.config.get('verbose'):
+                                    print(f"[ORCHESTRATOR] {module.name()} is applicable, calling scan()...")
+                                
                                 modules_run += 1
                                 
                                 try:
                                     # Run the module (async)
                                     module_findings = await module.scan(url, parameter, tracking_client)
+                                    
+                                    if self.config.get('verbose'):
+                                        print(f"[ORCHESTRATOR] {module.name()} returned {len(module_findings)} findings")
+                                    
                                     findings.extend(module_findings)
                                 
                                 except Exception as e:
                                     errors += 1
                                     if self.config.get('verbose'):
-                                        print(f"Error in {module.name()} on {url}: {e}")
+                                        print(f"[ORCHESTRATOR] Error in {module.name()} on {url}: {e}")
+                                        import traceback
+                                        traceback.print_exc()
+                            else:
+                                if self.config.get('verbose'):
+                                    print(f"[ORCHESTRATOR] {module.name()} not applicable")
                 else:
                     # No parameters, just run URL-level modules (like headers)
                     parameter = {'name': None, 'value': None, 'location': 'url'}
@@ -124,18 +143,37 @@ class ScannerOrchestrator:
                     # Apply contextual rules for URL-level checks
                     prioritized_modules = self._get_prioritized_modules(parameter, context)
                     
+                    if self.config.get('verbose'):
+                        print(f"\n[ORCHESTRATOR] Testing URL-level checks on {url}")
+                        print(f"[ORCHESTRATOR] Prioritized modules: {[m.name() for m in prioritized_modules]}")
+                    
                     for module in prioritized_modules:
+                        if self.config.get('verbose'):
+                            print(f"[ORCHESTRATOR] Checking {module.name()}...")
+                        
                         if module.check_applicable(parameter, context):
+                            if self.config.get('verbose'):
+                                print(f"[ORCHESTRATOR] {module.name()} is applicable, calling scan()...")
+                            
                             modules_run += 1
                             
                             try:
                                 module_findings = await module.scan(url, parameter, tracking_client)
+                                
+                                if self.config.get('verbose'):
+                                    print(f"[ORCHESTRATOR] {module.name()} returned {len(module_findings)} findings")
+                                
                                 findings.extend(module_findings)
                             
                             except Exception as e:
                                 errors += 1
                                 if self.config.get('verbose'):
-                                    print(f"Error in {module.name()} on {url}: {e}")
+                                    print(f"[ORCHESTRATOR] Error in {module.name()} on {url}: {e}")
+                                    import traceback
+                                    traceback.print_exc()
+                        else:
+                            if self.config.get('verbose'):
+                                print(f"[ORCHESTRATOR] {module.name()} not applicable")
             
             # Get HTTP stats
             http_stats = http_client.get_stats()

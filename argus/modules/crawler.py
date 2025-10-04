@@ -18,6 +18,7 @@ class Crawler:
         self.config = config
         self.visited_urls: Set[str] = set()
         self.max_depth = config.get('crawler', {}).get('max_depth', 3)
+        self.max_pages = config.get('crawler', {}).get('max_pages', 100)
         self.timeout = config.get('performance', {}).get('timeout', 10)
         self.use_active_crawling = config.get('crawler', {}).get('active', False)
     
@@ -56,6 +57,12 @@ class Crawler:
             if url_key not in seen_urls:
                 seen_urls.add(url_key)
                 unique_map.append(entry)
+                
+                # Respect max_pages limit
+                if len(unique_map) >= self.max_pages:
+                    if self.config.get('verbose'):
+                        print(f"   Reached max_pages limit ({self.max_pages}), stopping discovery")
+                    break
         
         return unique_map
     

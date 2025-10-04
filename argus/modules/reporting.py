@@ -70,6 +70,60 @@ class CLIReporter:
         reset = self.COLORS['Reset']
         return f"{color}{text}{reset}"
     
+    def _deduplicate_findings(self, findings: List[Dict]) -> List[Dict]:
+        """Deduplicate findings by grouping similar issues across multiple URLs.
+        
+        For issues like missing security headers that appear on many URLs,
+        group them into a single finding with multiple affected URLs.
+        
+        Args:
+            findings: List of all findings
+        
+        Returns:
+            List of deduplicated findings
+        """
+        # Group findings by (name, severity, parameter, payload)
+        # This groups identical findings that only differ by URL
+        groups = {}
+        
+        for finding in findings:
+            # Create a key that uniquely identifies the "type" of finding
+            key = (
+                finding['name'],
+                finding['severity'],
+                finding.get('parameter', 'N/A'),
+                finding.get('payload', 'N/A')[:50]  # First 50 chars of payload
+            )
+            
+            if key not in groups:
+                groups[key] = []
+            groups[key].append(finding)
+        
+        # Convert groups back to deduplicated findings
+        deduplicated = []
+        for key, group in groups.items():
+            if len(group) == 1:
+                # Only one instance, keep as-is
+                deduplicated.append(group[0])
+            else:
+                # Multiple instances, create a grouped finding
+                first = group[0]
+                urls = [f['url'] for f in group]
+                
+                # Create new finding with multiple URLs
+                grouped_finding = first.copy()
+                grouped_finding['url'] = urls[0]  # Primary URL
+                grouped_finding['affected_urls'] = urls  # All affected URLs
+                grouped_finding['affected_count'] = len(urls)
+                
+                # Update evidence to mention multiple URLs
+                if 'Missing Security Header' in first['name'] or 'CORS' in first['name']:
+                    grouped_finding['evidence'] = f"{first['evidence']} Found on {len(urls)} endpoints."
+                
+                deduplicated.append(grouped_finding)
+        
+        return deduplicated
+    
     def generate_report(self, findings: List[Dict], site_map: List[Dict], stats: Dict) -> None:
         """Generate and print console report.
         
@@ -78,6 +132,13 @@ class CLIReporter:
             site_map: Discovered site map (unused in basic version)
             stats: Scan statistics
         """
+        # Deduplicate findings first
+        original_count = len(findings)
+        findings = self._deduplicate_findings(findings)
+        
+        if self.config.get('verbose') and original_count > len(findings):
+            print(f"\n{self.COLORS['Dim']}ℹ️  Deduplicated {original_count} findings → {len(findings)} unique issues{self.COLORS['Reset']}")
+        
         # Enrich findings with compliance data if enabled
         if self.show_compliance and self.compliance_mapper and findings:
             findings = self.compliance_mapper.enrich_findings(findings)
@@ -124,11 +185,23 @@ class CLIReporter:
                 
                 # Header
                 print(f"{'─'*70}")
-                print(f"{self.COLORS['Bold']}{icon} [{idx}/{len(findings)}] {self._colorize(severity.upper(), severity)}: {finding['name']}{self.COLORS['Reset']}")
+                title = f"{icon} [{idx}/{len(findings)}] {self._colorize(severity.upper(), severity)}: {finding['name']}"
+                if 'affected_count' in finding and finding['affected_count'] > 1:
+                    title += f" {self.COLORS['Dim']}(on {finding['affected_count']} endpoints){self.COLORS['Reset']}"
+                print(f"{self.COLORS['Bold']}{title}{self.COLORS['Reset']}")
                 print(f"{'─'*70}")
                 
                 # Details
-                print(f"{self.COLORS['Dim']}URL:{self.COLORS['Reset']} {finding['url']}")
+                if 'affected_count' in finding and finding['affected_count'] > 1:
+                    print(f"{self.COLORS['Dim']}Affected URLs:{self.COLORS['Reset']} {finding['affected_count']} endpoints")
+                    # Show first few URLs
+                    urls_to_show = finding['affected_urls'][:5]
+                    for url in urls_to_show:
+                        print(f"  • {url}")
+                    if len(finding['affected_urls']) > 5:
+                        print(f"  {self.COLORS['Dim']}... and {len(finding['affected_urls']) - 5} more{self.COLORS['Reset']}")
+                else:
+                    print(f"{self.COLORS['Dim']}URL:{self.COLORS['Reset']} {finding['url']}")
                 
                 if finding['parameter'] != 'N/A':
                     print(f"{self.COLORS['Dim']}Parameter:{self.COLORS['Reset']} {finding['parameter']}")

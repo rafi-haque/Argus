@@ -233,6 +233,7 @@ async def async_main(args):
     from argus.modules.attack_modules.lfi_rfi import LFIRFIModule
     from argus.modules.attack_modules.insecure_deserialization import InsecureDeserializationModule
     from argus.modules.attack_modules.api_vulnerabilities import APIVulnerabilitiesModule
+    from argus.modules.attack_modules.auth_bypass import AuthBypassModule
     
     from argus.modules.orchestrator import ScannerOrchestrator
     from argus.modules.reporting import CLIReporter
@@ -251,6 +252,7 @@ async def async_main(args):
         'lfi_rfi': LFIRFIModule(config),
         'insecure_deserialization': InsecureDeserializationModule(config),
         'api_vulnerabilities': APIVulnerabilitiesModule(config),
+        'auth_bypass': AuthBypassModule(config),
     }
     
     # Filter modules based on policy

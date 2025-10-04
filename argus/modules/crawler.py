@@ -263,6 +263,7 @@ class Crawler:
             '/rest/api',
             '/rest/user',
             '/rest/products',
+            '/rest/products/search',  # Juice Shop specific
             '/graphql',
             '/v1',
             '/v2',
@@ -289,16 +290,19 @@ class Crawler:
                 if response.status_code != 404:
                     discovered_endpoints.append(test_url)
                     
-                    # Try common resources under this API path
-                    for resource in resource_patterns:
-                        resource_url = f"{test_url}/{resource}"
-                        if resource_url not in self.visited_urls:
-                            try:
-                                res_response = session.get(resource_url, timeout=self.timeout, allow_redirects=True)
-                                if res_response.status_code != 404:
-                                    discovered_endpoints.append(resource_url)
-                            except requests.exceptions.RequestException:
-                                pass
+                    # Only try resources for base API paths, not nested ones
+                    # This prevents explosion of /api/v1/products/users/items/etc.
+                    if api_path in ['/api', '/api/v1', '/api/v2', '/rest', '/rest/v1', '/rest/api']:
+                        # Try common resources under this API path
+                        for resource in resource_patterns:
+                            resource_url = f"{test_url}/{resource}"
+                            if resource_url not in self.visited_urls:
+                                try:
+                                    res_response = session.get(resource_url, timeout=self.timeout, allow_redirects=True)
+                                    if res_response.status_code != 404:
+                                        discovered_endpoints.append(resource_url)
+                                except requests.exceptions.RequestException:
+                                    pass
             except requests.exceptions.RequestException:
                 pass
         
@@ -310,14 +314,14 @@ class Crawler:
                 api_map.append(entry)
                 
                 # For search-like endpoints, add common query parameters
-                if any(term in url.lower() for term in ['search', 'find', 'query', 'filter', 'products', 'items', 'users']):
-                    # Add entries with common test parameters
+                # Only add params if the endpoint name suggests it accepts them
+                url_lower = url.lower()
+                if any(term in url_lower for term in ['search', 'find', 'query', 'filter']):
+                    # Search/filter endpoints - test with search params
                     test_params = [
                         ('q', 'test'),
                         ('search', 'test'),
                         ('query', 'test'),
-                        ('id', '1'),
-                        ('filter', 'test'),
                         ('keyword', 'test')
                     ]
                     
@@ -333,6 +337,20 @@ class Crawler:
                             }]
                         }
                         api_map.append(param_entry)
+                
+                elif any(term in url_lower for term in ['user', 'product', 'item', 'order', 'account']):
+                    # Resource endpoints - test with ID param
+                    param_url = f"{url}?id=1"
+                    param_entry = {
+                        'url': param_url,
+                        'method': 'GET',
+                        'parameters': [{
+                            'name': 'id',
+                            'value': '1',
+                            'location': 'query'
+                        }]
+                    }
+                    api_map.append(param_entry)
                 
                 if self.config.get('verbose'):
                     print(f"   Discovered API endpoint: {url}")

@@ -234,6 +234,7 @@ async def async_main(args):
     from argus.modules.attack_modules.insecure_deserialization import InsecureDeserializationModule
     from argus.modules.attack_modules.api_vulnerabilities import APIVulnerabilitiesModule
     from argus.modules.attack_modules.auth_bypass import AuthBypassModule
+    from argus.modules.attack_modules.broken_access_control import BrokenAccessControlModule
     
     from argus.modules.orchestrator import ScannerOrchestrator
     from argus.modules.reporting import CLIReporter
@@ -253,6 +254,7 @@ async def async_main(args):
         'insecure_deserialization': InsecureDeserializationModule(config),
         'api_vulnerabilities': APIVulnerabilitiesModule(config),
         'auth_bypass': AuthBypassModule(config),
+        'broken_access_control': BrokenAccessControlModule(config),
     }
     
     # Filter modules based on policy

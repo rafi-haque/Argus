@@ -79,7 +79,7 @@ class XSSModule(AsyncBaseAttackModule):
         Args:
             url: URL to test
             parameter: Parameter to test
-            session: Requests session
+            client: Async HTTP client
         
         Returns:
             dict: Finding if vulnerable and confirmed, None otherwise
@@ -89,7 +89,7 @@ class XSSModule(AsyncBaseAttackModule):
             return None
         
         try:
-            from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
+            from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeout
             import hashlib
             
             param_name = parameter['name']
@@ -106,10 +106,10 @@ class XSSModule(AsyncBaseAttackModule):
                 f"<img src=x onerror=window.argus_{unique_id}=1>",
             ]
             
-            with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True)
-                context = browser.new_context()
-                page = context.new_page()
+            async with async_playwright() as p:
+                browser = await p.chromium.launch(headless=True)
+                context = await browser.new_context()
+                page = await context.new_page()
                 
                 for payload in test_payloads[:3]:  # Test first 3
                     try:
@@ -117,13 +117,13 @@ class XSSModule(AsyncBaseAttackModule):
                         test_url = self._inject_payload(url, param_name, payload, param_location)
                         
                         # Navigate and wait for page load
-                        page.goto(test_url, wait_until='networkidle', timeout=10000)
+                        await page.goto(test_url, wait_until='networkidle', timeout=10000)
                         
                         # Check if our JavaScript executed
-                        result = page.evaluate(f"typeof window.argus_{unique_id}")
+                        result = await page.evaluate(f"typeof window.argus_{unique_id}")
                         
                         if result == 'number':  # Our script executed!
-                            browser.close()
+                            await browser.close()
                             return {
                                 'name': 'Cross-Site Scripting (XSS) - Confirmed',
                                 'severity': 'Critical',
@@ -141,7 +141,7 @@ class XSSModule(AsyncBaseAttackModule):
                             print(f"Browser validation error: {e}")
                         continue
                 
-                browser.close()
+                await browser.close()
         
         except ImportError:
             # Playwright not available, skip browser validation
@@ -237,7 +237,7 @@ class XSSModule(AsyncBaseAttackModule):
         param_location = parameter['location']
         
         try:
-            from playwright.sync_api import sync_playwright
+            from playwright.async_api import async_playwright
             import hashlib
             
             # Generate unique identifier
@@ -250,10 +250,10 @@ class XSSModule(AsyncBaseAttackModule):
                 f"\"><script>alert('{unique_id}')</script>",
             ]
             
-            with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True)
-                context = browser.new_context()
-                page = context.new_page()
+            async with async_playwright() as p:
+                browser = await p.chromium.launch(headless=True)
+                context = await browser.new_context()
+                page = await context.new_page()
                 
                 # Track dialog events (alerts)
                 alert_triggered = False
@@ -263,7 +263,9 @@ class XSSModule(AsyncBaseAttackModule):
                     nonlocal alert_triggered, alert_message
                     alert_triggered = True
                     alert_message = dialog.message
-                    dialog.accept()
+                    # Need to await this in an async context
+                    import asyncio
+                    asyncio.create_task(dialog.accept())
                 
                 page.on('dialog', handle_dialog)
                 
@@ -276,12 +278,12 @@ class XSSModule(AsyncBaseAttackModule):
                     test_url = self._inject_payload(url, param_name, payload, param_location)
                     
                     try:
-                        page.goto(test_url, timeout=self.timeout * 1000, wait_until='load')
-                        page.wait_for_timeout(1000)  # Wait for JS execution
+                        await page.goto(test_url, timeout=self.timeout * 1000, wait_until='load')
+                        await page.wait_for_timeout(1000)  # Wait for JS execution
                         
                         # Check if alert was triggered with our identifier
                         if alert_triggered and unique_id in str(alert_message):
-                            browser.close()
+                            await browser.close()
                             
                             evidence = (
                                 f"DOM-based XSS detected. Payload '{payload}' triggered "
@@ -300,7 +302,7 @@ class XSSModule(AsyncBaseAttackModule):
                     except Exception:
                         continue
                 
-                browser.close()
+                await browser.close()
         
         except ImportError:
             # Playwright not available

@@ -1,5 +1,4 @@
 """Unit tests for new attack modules - CSRF, Path Traversal, Command Injection, CORS, Open Redirect."""
-import pytest
 import asyncio
 import httpx
 from unittest.mock import Mock
@@ -8,7 +7,6 @@ from argus.modules.attack_modules.path_traversal import PathTraversalModule
 from argus.modules.attack_modules.command_injection import CommandInjectionModule
 from argus.modules.attack_modules.cors import CORSModule
 from argus.modules.attack_modules.open_redirect import OpenRedirectModule
-import httpx
 
 
 class TestCSRFModule:

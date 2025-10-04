@@ -14,7 +14,7 @@ import re
 import time
 from typing import Dict, List, Optional, Tuple
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
 class OASTClient:
@@ -64,7 +64,7 @@ class OASTClient:
             else:
                 raise Exception(f"Registration failed: {response.status_code}")
                 
-        except Exception as e:
+        except Exception:
             # Fallback to manual domain generation if service unavailable
             self.domain = f"c{hashlib.md5(str(time.time()).encode()).hexdigest()[:16]}.oastify.com"
             self.secret = hashlib.md5(str(time.time()).encode()).hexdigest()
@@ -200,7 +200,7 @@ class OASTClient:
                                 
                                 triggered.append(callback_data)
         
-        except Exception as e:
+        except Exception:
             # Silently handle polling errors (network issues, etc.)
             pass
         

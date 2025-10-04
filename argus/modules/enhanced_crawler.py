@@ -10,14 +10,11 @@ Features:
 - API endpoint extraction from JS bundles
 - Async/await throughout
 """
-from typing import Dict, List, Set, Optional, Tuple
-from urllib.parse import urljoin, urlparse, parse_qs, urlunparse
+from typing import Dict, List, Set
+from urllib.parse import urljoin, urlparse, parse_qs
 import re
-import asyncio
 import json
-from pathlib import Path
-from playwright.async_api import async_playwright, Page, Browser, BrowserContext, Route
-from bs4 import BeautifulSoup
+from playwright.async_api import async_playwright, Page, Route
 import httpx
 
 

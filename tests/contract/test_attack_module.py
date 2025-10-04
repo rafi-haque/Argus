@@ -1,5 +1,4 @@
 """Contract tests for attack module interface."""
-import pytest
 import requests
 from argus.modules.attack_modules.base import BaseAttackModule
 

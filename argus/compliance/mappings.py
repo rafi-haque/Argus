@@ -6,11 +6,10 @@ Maps vulnerabilities to industry standards:
 - PCI-DSS v4.0
 - HIPAA Security Rule
 """
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional
 from dataclasses import dataclass, field
 from pathlib import Path
 import yaml
-import json
 
 
 @dataclass

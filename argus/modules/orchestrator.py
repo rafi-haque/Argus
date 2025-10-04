@@ -3,9 +3,8 @@
 ASYNC-ONLY ARCHITECTURE
 Uses asyncio + httpx for high-performance concurrent scanning.
 """
-from typing import Dict, List, Optional
+from typing import Dict, List
 import time
-import asyncio
 from pathlib import Path
 from argus.modules.async_http import AsyncHTTPClient
 from argus.modules.rule_engine import RuleEngine

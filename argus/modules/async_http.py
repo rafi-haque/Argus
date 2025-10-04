@@ -9,7 +9,6 @@ Replaces synchronous requests library with async httpx for:
 import asyncio
 import httpx
 from typing import Dict, Optional, Any
-from urllib.parse import urljoin, urlparse
 import time
 
 
@@ -120,11 +119,11 @@ class AsyncHTTPClient:
                 
                 return response
                 
-            except httpx.TimeoutException as e:
+            except httpx.TimeoutException:
                 self.stats['timeouts'] += 1
                 self.stats['errors'] += 1
                 raise
-            except Exception as e:
+            except Exception:
                 self.stats['errors'] += 1
                 raise
     
@@ -163,11 +162,11 @@ class AsyncHTTPClient:
                 
                 return response
                 
-            except httpx.TimeoutException as e:
+            except httpx.TimeoutException:
                 self.stats['timeouts'] += 1
                 self.stats['errors'] += 1
                 raise
-            except Exception as e:
+            except Exception:
                 self.stats['errors'] += 1
                 raise
     
@@ -196,11 +195,11 @@ class AsyncHTTPClient:
                 
                 return response
                 
-            except httpx.TimeoutException as e:
+            except httpx.TimeoutException:
                 self.stats['timeouts'] += 1
                 self.stats['errors'] += 1
                 raise
-            except Exception as e:
+            except Exception:
                 self.stats['errors'] += 1
                 raise
     

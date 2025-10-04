@@ -65,7 +65,7 @@ def test_parameter(engine, param_name, url, method='GET', verbose=False):
     
     prioritized = engine.prioritize_modules(parameter, context, available_modules)
     
-    print(f"\n   📊 Module Priority Order (top 5):")
+    print("\n   📊 Module Priority Order (top 5):")
     for i, module in enumerate(prioritized[:5], 1):
         print(f"      {i}. {module}")
 
@@ -147,7 +147,7 @@ def main():
     
     # Summary
     print_header("Summary")
-    print(f"""
+    print("""
    ✅ Rule engine loaded successfully
    ✅ All test scenarios completed
    ✅ Intelligent prioritization demonstrated

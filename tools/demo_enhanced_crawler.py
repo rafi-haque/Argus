@@ -98,14 +98,14 @@ async def demo_spa_crawl():
     api_entries = [e for e in site_map if e.get('source') == 'network_interception']
     js_entries = [e for e in site_map if e.get('source') == 'javascript_analysis']
     
-    print(f"\n✅ Discovery Summary:")
+    print("\n✅ Discovery Summary:")
     print(f"   HTML Crawl:      {len(html_entries)} endpoints")
     print(f"   API Interception: {len(api_entries)} endpoints")
     print(f"   JS Analysis:      {len(js_entries)} endpoints")
     print(f"   Total:           {len(site_map)} endpoints")
     
     if api_entries:
-        print(f"\n📡 API Endpoints (XHR/Fetch):")
+        print("\n📡 API Endpoints (XHR/Fetch):")
         for entry in api_entries[:5]:
             print(f"   [{entry['method']}] {entry['url']}")
 

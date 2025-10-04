@@ -1,5 +1,4 @@
 """Integration test for XSS detection."""
-import pytest
 
 
 def test_xss_detection_placeholder():

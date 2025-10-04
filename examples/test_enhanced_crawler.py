@@ -79,7 +79,7 @@ def test_javascript_analyzer():
             params = ', '.join(p['name'] for p in finding['parameters'])
             print(f"      Parameters: {params}")
     
-    print(f"\n📊 Summary:")
+    print("\n📊 Summary:")
     print(f"   Total endpoints discovered: {len(findings)}")
     print(f"   Endpoints with parameters: {sum(1 for f in findings if f['parameters'])}")
     
@@ -168,7 +168,7 @@ def test_api_patterns():
         findings = analyzer.analyze_script(code, 'https://example.com')
         results[pattern_name] = len(findings) > 0
     
-    print(f"\n✅ Pattern Recognition Results:\n")
+    print("\n✅ Pattern Recognition Results:\n")
     
     for pattern_name, found in results.items():
         status = "✅" if found else "❌"
@@ -199,7 +199,7 @@ def test_real_world_bundle():
     analyzer = JavaScriptAnalyzer()
     findings = analyzer.analyze_script(bundle_js, 'https://example.com')
     
-    print(f"\n✅ Extracted from minified bundle:\n")
+    print("\n✅ Extracted from minified bundle:\n")
     
     # Group by type
     api_endpoints = [f for f in findings if '/api/' in f['url']]

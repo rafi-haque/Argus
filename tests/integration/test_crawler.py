@@ -1,5 +1,4 @@
 """Integration test for site map discovery."""
-import pytest
 
 
 def test_crawler_site_map_placeholder():

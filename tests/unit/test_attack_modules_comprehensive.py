@@ -1,6 +1,5 @@
 """Additional unit tests for attack modules - comprehensive coverage."""
-import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 from argus.modules.attack_modules.insecure_headers import InsecureHeadersModule
 from argus.modules.attack_modules.sqli import SQLiModule
 from argus.modules.attack_modules.xss import XSSModule

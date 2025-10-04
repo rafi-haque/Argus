@@ -3,7 +3,6 @@ import httpx
 from .async_base import AsyncBaseAttackModule
 from argus.modules.oast import OASTClient, OASTPayloadGenerator
 import time
-import socket
 from typing import Optional
 
 

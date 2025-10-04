@@ -8,11 +8,10 @@ Replaces static payload lists with adaptive fuzzing that:
 
 This dramatically increases coverage and reduces false negatives.
 """
-from typing import List, Dict, Set, Optional
+from typing import List, Dict, Optional
 import urllib.parse
 import html
 import base64
-import re
 from enum import Enum
 
 
@@ -156,10 +155,10 @@ class PayloadFuzzer:
             if detected_context == 'attribute':
                 payloads.append(f'"{base}')
                 payloads.append(f"'{base}")
-                payloads.append(f'><script>alert(1)</script>')
+                payloads.append('><script>alert(1)</script>')
             elif detected_context == 'script':
                 payloads.append(f'</script>{base}')
-                payloads.append(f';alert(1)//')
+                payloads.append(';alert(1)//')
             
             # Encoding variations
             payloads.extend(self._encode_payload(base, [

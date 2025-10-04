@@ -108,6 +108,9 @@ class SQLiModule(AsyncBaseAttackModule):
         Returns:
             list: Findings
         """
+        if self.config.get('verbose'):
+            print(f"[DEBUG] SQLi scanning {url} with parameter {parameter.get('name')}")
+        
         findings = []
         
         # Try error-based SQLi first (fastest and most reliable)

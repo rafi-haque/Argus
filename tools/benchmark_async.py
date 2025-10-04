@@ -10,7 +10,7 @@ import sys
 # Add project to path
 sys.path.insert(0, '/home/rafi/projects/argus')
 
-from argus.modules.async_orchestrator import AsyncOrchestrator, compare_sync_vs_async
+from argus.modules.async_orchestrator import AsyncOrchestrator
 
 
 async def main():
@@ -48,10 +48,10 @@ async def main():
         {'name': 'sort', 'value': 'name', 'location': 'query'},
     ]
     
-    print(f"\nTest Configuration:")
+    print("\nTest Configuration:")
     print(f"  Target URL: {test_url}")
     print(f"  Parameters to test: {len(parameters)}")
-    print(f"  Attack modules: 1 (AsyncSQLiModule)")
+    print("  Attack modules: 1 (AsyncSQLiModule)")
     print(f"  Rate limit: {config.get('rate_limit_per_second', 'None')} req/s")
     print(f"  Max connections: {config['max_connections']}")
     
@@ -75,7 +75,7 @@ async def main():
     stats = results['stats']
     findings = results['findings']
     
-    print(f"\n📊 Performance Metrics:")
+    print("\n📊 Performance Metrics:")
     print(f"   Total time: {elapsed:.2f}s")
     print(f"   Total scans: {len(parameters)}")
     print(f"   HTTP requests: {stats.get('requests', 0)}")
@@ -112,7 +112,7 @@ async def main():
     
     speedup = theoretical_sync_time / elapsed if elapsed > 0 else 1
     
-    print(f"\nAsync architecture benefits:")
+    print("\nAsync architecture benefits:")
     print(f"   Actual time: {elapsed:.2f}s")
     print(f"   Sequential time estimate: {theoretical_sync_time:.2f}s")
     print(f"   Speedup: {speedup:.1f}x faster")

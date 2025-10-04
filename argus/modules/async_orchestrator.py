@@ -5,8 +5,8 @@ Demonstrates dramatic performance improvement over sync version.
 """
 import asyncio
 import time
-from typing import List, Dict, Optional
-from argus.modules.async_http import AsyncHTTPClient, AsyncBatchHTTPClient
+from typing import List, Dict
+from argus.modules.async_http import AsyncHTTPClient
 from argus.modules.attack_modules.async_sqli import AsyncSQLiModule
 
 
@@ -244,7 +244,7 @@ async def compare_sync_vs_async(url: str, parameters: List[Dict], config: dict) 
     # Sync scan (using old orchestrator would go here)
     # For now, just demonstrate async results
     
-    print(f"\n✅ Async scan completed:")
+    print("\n✅ Async scan completed:")
     print(f"   Time: {async_elapsed:.2f}s")
     print(f"   Findings: {len(async_results['findings'])}")
     print(f"   Requests: {async_results['stats'].get('requests', 0)}")

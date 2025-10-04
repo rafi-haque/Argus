@@ -1,5 +1,4 @@
 """Integration test for SQLi detection."""
-import pytest
 
 
 def test_sqli_detection_placeholder():

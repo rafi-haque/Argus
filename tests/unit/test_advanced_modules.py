@@ -2,7 +2,7 @@
 import pytest
 import asyncio
 import httpx
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock
 from argus.modules.attack_modules.ssrf import SSRFModule
 from argus.modules.attack_modules.lfi_rfi import LFIRFIModule
 from argus.modules.attack_modules.insecure_deserialization import InsecureDeserializationModule

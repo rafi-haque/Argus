@@ -163,7 +163,7 @@ class DatabaseCLI:
         
         # Summary
         summary = trend['summary']
-        print(f"\nSummary:")
+        print("\nSummary:")
         print(f"  Total Scans:    {summary['total_scans']}")
         print(f"  Total Findings: {summary['total_findings']}")
         print(f"  Avg Per Scan:   {summary['avg_findings_per_scan']:.1f}")
@@ -189,7 +189,7 @@ class DatabaseCLI:
             return
         
         print(f"\n{'='*80}")
-        print(f"SCAN COMPARISON")
+        print("SCAN COMPARISON")
         print(f"{'='*80}")
         
         # Scan info

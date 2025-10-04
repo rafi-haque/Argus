@@ -1,5 +1,4 @@
 """Tests for HTTP utilities."""
-import pytest
 import time
 from unittest.mock import Mock, patch
 from argus.http_utils import HTTPClient, ScanProgress, is_in_scope

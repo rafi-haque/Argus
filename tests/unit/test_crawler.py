@@ -1,5 +1,4 @@
 """Unit tests for Crawler module."""
-import pytest
 from argus.modules.crawler import Crawler
 
 

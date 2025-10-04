@@ -1,5 +1,4 @@
 """Integration test for basic header check scenario."""
-import pytest
 
 
 def test_basic_header_scan_placeholder():

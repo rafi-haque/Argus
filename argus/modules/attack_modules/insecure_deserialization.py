@@ -1,8 +1,6 @@
 """Insecure Deserialization detection module."""
 import httpx
 from .async_base import AsyncBaseAttackModule
-import base64
-import json
 
 
 class InsecureDeserializationModule(AsyncBaseAttackModule):

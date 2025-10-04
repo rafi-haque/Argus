@@ -1,5 +1,4 @@
 """Unit tests for XSS module."""
-import pytest
 from argus.modules.attack_modules.xss import XSSModule
 
 

@@ -6,7 +6,7 @@ This tool helps users create, view, edit, and validate rule files.
 import argparse
 import sys
 from pathlib import Path
-from argus.modules.rule_engine import RuleEngine, Rule, create_default_rules_file
+from argus.modules.rule_engine import RuleEngine, create_default_rules_file
 
 
 def cmd_export(args):
@@ -122,7 +122,7 @@ def cmd_test(args):
         available_modules = list(set(m for r in matched_rules for m in r.modules))
         prioritized = engine.prioritize_modules(parameter, context, available_modules)
         
-        print(f"📊 Module Priority Order:")
+        print("📊 Module Priority Order:")
         for i, module in enumerate(prioritized, 1):
             print(f"   {i}. {module}")
         
@@ -153,7 +153,7 @@ def cmd_stats(args):
         avg_weight = sum(r.weight for r in enabled) / len(enabled) if enabled else 0
         all_tags = set(t for r in rules for t in r.tags)
         
-        print(f"📊 Rule Statistics:")
+        print("📊 Rule Statistics:")
         print(f"   Total rules: {len(rules)}")
         print(f"   Enabled: {len(enabled)}")
         print(f"   Disabled: {len(rules) - len(enabled)}")
@@ -170,7 +170,7 @@ def cmd_stats(args):
                 for module in rule.modules:
                     module_counts[module] = module_counts.get(module, 0) + 1
             
-            print(f"\n🔧 Most Referenced Modules:")
+            print("\n🔧 Most Referenced Modules:")
             for module, count in sorted(module_counts.items(), key=lambda x: x[1], reverse=True)[:10]:
                 print(f"   {module}: {count} rules")
         

@@ -1,5 +1,4 @@
 """Unit tests for SQLi module."""
-import pytest
 from argus.modules.attack_modules.sqli import SQLiModule
 
 

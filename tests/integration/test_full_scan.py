@@ -1,5 +1,4 @@
 """Integration test for full scan workflow."""
-import pytest
 
 
 def test_full_scan_workflow_placeholder():

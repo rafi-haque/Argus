@@ -1,7 +1,7 @@
 """Path Traversal / Directory Traversal detection module."""
 import httpx
 from typing import Dict, List
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urlparse
 
 
 class PathTraversalModule:
@@ -160,7 +160,7 @@ class PathTraversalModule:
         Returns:
             str: Modified URL
         """
-        from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+        from urllib.parse import parse_qs, urlencode, urlunparse
         
         parsed = urlparse(url)
         

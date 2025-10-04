@@ -1,5 +1,4 @@
 """Unit tests for insecure headers module."""
-import pytest
 from argus.modules.attack_modules.insecure_headers import InsecureHeadersModule
 
 

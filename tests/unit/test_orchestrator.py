@@ -1,5 +1,4 @@
 """Unit tests for Orchestrator module."""
-import pytest
 from argus.modules.orchestrator import ScannerOrchestrator
 
 

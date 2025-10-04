@@ -4,7 +4,7 @@ Replaces naive grep-based detection with statistical analysis and behavioral fin
 Dramatically reduces false positives by comparing response characteristics rather than
 simply searching for payload strings in the response.
 """
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Optional
 import re
 import hashlib
 from difflib import SequenceMatcher

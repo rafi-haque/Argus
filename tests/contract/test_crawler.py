@@ -1,5 +1,4 @@
 """Contract tests for crawler interface."""
-import pytest
 
 
 def test_crawler_interface_placeholder():

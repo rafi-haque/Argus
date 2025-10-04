@@ -7,7 +7,6 @@ Uses asyncio for high-performance concurrent scanning.
 import argparse
 import sys
 import asyncio
-from typing import Optional
 
 
 def parse_arguments():

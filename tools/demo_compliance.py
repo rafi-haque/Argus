@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from argus.compliance.mappings import ComplianceMapper
-from argus.compliance.reporting import ComplianceReportGenerator, generate_compliance_cli_report
+from argus.compliance.reporting import ComplianceReportGenerator
 
 
 def demo_basic_mapping():
@@ -71,7 +71,7 @@ def demo_basic_mapping():
         compliance = finding['compliance']
         owasp = compliance['owasp']
         
-        print(f"\n   📋 Compliance Mappings:")
+        print("\n   📋 Compliance Mappings:")
         print(f"      OWASP: {owasp['id']} - {owasp['category']}")
         print(f"      CWE: {', '.join([f'CWE-{cwe}' for cwe in compliance['cwe_ids']])}")
         print(f"      PCI-DSS: {', '.join(compliance['pci_dss'][:3])}")
@@ -222,26 +222,26 @@ def demo_report_generation():
     print(f"🎯 Overall Status: {exec_summary['overall_status']}")
     print(f"🔢 Risk Score: {exec_summary['risk_score']}/100")
     
-    print(f"\n📈 Severity Breakdown:")
+    print("\n📈 Severity Breakdown:")
     for severity, count in exec_summary['severity_breakdown'].items():
         if count > 0:
             print(f"   • {severity}: {count}")
     
-    print(f"\n⚠️  Key Concerns:")
+    print("\n⚠️  Key Concerns:")
     for concern in exec_summary['key_concerns']:
         print(f"   • {concern}")
     
-    print(f"\n📋 Standards Impacted:")
+    print("\n📋 Standards Impacted:")
     standards = exec_summary['standards_impacted']
     print(f"   • OWASP Categories: {standards['owasp_categories']}")
     print(f"   • CWE Weaknesses: {standards['cwe_weaknesses']}")
     print(f"   • PCI-DSS Requirements: {standards['pci_requirements']}")
     print(f"   • HIPAA Controls: {standards['hipaa_controls']}")
     
-    print(f"\n💾 Generated Report Files:")
-    print(f"   • demo_compliance_report.json")
-    print(f"   • demo_compliance_report.md")
-    print(f"   • demo_compliance_report.html")
+    print("\n💾 Generated Report Files:")
+    print("   • demo_compliance_report.json")
+    print("   • demo_compliance_report.md")
+    print("   • demo_compliance_report.html")
     
     print("\n✅ Full compliance report generated successfully!")
 

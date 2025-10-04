@@ -43,7 +43,7 @@ def generate_sample_findings(count: int = 5) -> list:
             'url': f'https://example.com/page{i}',
             'method': 'GET',
             'parameter': f'param{i}',
-            'payload': f"' OR 1=1--",
+            'payload': "' OR 1=1--",
             'evidence': 'SQL error in response',
             'remediation': 'Use parameterized queries',
             'confidence': 0.8 + random.random() * 0.2,
@@ -170,12 +170,12 @@ def demo_trend_analysis():
     print("\n✓ Analyzing 7-day trend...")
     trend = db.get_vulnerability_trend(days=7)
     
-    print(f"\n  Summary:")
+    print("\n  Summary:")
     print(f"  → Total Scans: {trend['summary']['total_scans']}")
     print(f"  → Total Findings: {trend['summary']['total_findings']}")
     print(f"  → Avg Per Scan: {trend['summary']['avg_findings_per_scan']:.1f}")
     
-    print(f"\n  Daily Breakdown:")
+    print("\n  Daily Breakdown:")
     print(f"  {'Date':<12} {'Scans':<8} {'Findings':<10} {'Critical':<10} {'High':<8}")
     print(f"  {'-'*50}")
     
@@ -210,30 +210,30 @@ def demo_scan_comparison():
     
     comparison = db.compare_scans(scan_1_id, scan_2_id)
     
-    print(f"\n  Scan 1:")
+    print("\n  Scan 1:")
     print(f"  → ID: #{comparison['scan_1']['id']}")
     print(f"  → Date: {comparison['scan_1']['start_time']}")
     print(f"  → Findings: {comparison['scan_1']['total_findings']}")
     
-    print(f"\n  Scan 2:")
+    print("\n  Scan 2:")
     print(f"  → ID: #{comparison['scan_2']['id']}")
     print(f"  → Date: {comparison['scan_2']['start_time']}")
     print(f"  → Findings: {comparison['scan_2']['total_findings']}")
     
     summary = comparison['summary']
-    print(f"\n  Comparison:")
+    print("\n  Comparison:")
     print(f"  → New:       {summary['new_count']}")
     print(f"  → Fixed:     {summary['fixed_count']}")
     print(f"  → Changed:   {summary['changed_count']}")
     print(f"  → Unchanged: {summary['unchanged_count']}")
     
     if comparison['comparison']['new']:
-        print(f"\n  New Vulnerabilities:")
+        print("\n  New Vulnerabilities:")
         for finding in comparison['comparison']['new'][:3]:
             print(f"  → [{finding['severity'].upper()}] {finding['title']}")
     
     if comparison['comparison']['fixed']:
-        print(f"\n  Fixed Vulnerabilities:")
+        print("\n  Fixed Vulnerabilities:")
         for finding in comparison['comparison']['fixed'][:3]:
             print(f"  → [{finding['severity'].upper()}] {finding['title']}")
     

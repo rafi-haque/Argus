@@ -118,11 +118,11 @@ Examples:
         print(f"📤 Exporting compliance mappings to {args.export_mappings}...")
         mapper = ComplianceMapper()
         mapper.export_mappings(args.export_mappings)
-        print(f"✅ Mappings exported successfully!")
-        print(f"   • owasp_top10.yaml")
-        print(f"   • cwe_mappings.yaml")
-        print(f"   • pci_dss.yaml")
-        print(f"   • hipaa.yaml")
+        print("✅ Mappings exported successfully!")
+        print("   • owasp_top10.yaml")
+        print("   • cwe_mappings.yaml")
+        print("   • pci_dss.yaml")
+        print("   • hipaa.yaml")
         return 0
     
     # Validate mappings
@@ -180,7 +180,7 @@ Examples:
         
         # Generate compliance report
         if args.verbose:
-            print(f"📊 Generating compliance report...")
+            print("📊 Generating compliance report...")
         
         generator = ComplianceReportGenerator()
         report = generator.generate_compliance_report(
@@ -198,19 +198,19 @@ Examples:
         print(f"\n🎯 Overall Status: {exec_summary['overall_status']}")
         print(f"🔢 Risk Score: {exec_summary['risk_score']}/100")
         
-        print(f"\n📊 Findings by Severity:")
+        print("\n📊 Findings by Severity:")
         for severity, count in exec_summary['severity_breakdown'].items():
             if count > 0:
                 print(f"   • {severity}: {count}")
         
         compliance = report['compliance_summary']
-        print(f"\n📋 Standards Impacted:")
+        print("\n📋 Standards Impacted:")
         print(f"   • OWASP Top 10: {compliance['owasp_top10']['count']} categories")
         print(f"   • CWE: {compliance['cwe']['count']} weaknesses")
         print(f"   • PCI-DSS: {compliance['pci_dss']['count']} requirements")
         print(f"   • HIPAA: {compliance['hipaa']['count']} controls")
         
-        print(f"\n💾 Report Files:")
+        print("\n💾 Report Files:")
         for fmt in args.format:
             ext = {'json': '.json', 'yaml': '.yaml', 'html': '.html', 'markdown': '.md'}
             output_file = Path(args.output).with_suffix(ext[fmt])

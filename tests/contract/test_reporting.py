@@ -1,5 +1,4 @@
 """Contract tests for reporting interface."""
-import pytest
 
 
 def test_reporting_interface_placeholder():

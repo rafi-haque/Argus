@@ -1,8 +1,5 @@
 """Unit tests for Reporting module."""
-import pytest
 import json
-from io import StringIO
-import sys
 from argus.modules.reporting import CLIReporter, JSONReporter
 
 

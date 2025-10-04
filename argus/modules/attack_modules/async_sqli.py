@@ -76,7 +76,10 @@ class AsyncSQLiModule(AsyncBaseAttackModule):
         Returns:
             bool: True if applicable
         """
-        param_name = parameter.get('name', '').lower()
+        param_name = parameter.get('name')
+        if not param_name:
+            return False  # SQLi requires a parameter
+        param_name = param_name.lower()
         
         # SQL-prone parameter names (comprehensive list for Juice Shop and similar apps)
         sqli_keywords = [

